@@ -20,6 +20,7 @@ async def async_setup_entry(
             PlantLabConditionsSensor(entry),
             PlantLabPestsSensor(entry),
             PlantLabGrowthStageSensor(entry),
+            PlantLabNutrientAnalysisSensor(entry),
         ]
     )
 
@@ -178,6 +179,45 @@ class PlantLabGrowthStageSensor(PlantLabBaseSensor):
             return None
         return {
             "confidence": self._diagnosis_data.get("growth_stage_confidence"),
+        }
+
+    def _update_from_data(self, data: dict) -> None:
+        pass
+
+
+class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
+    _attr_name = "Nutrient Analysis"
+    _attr_icon = "mdi:flask-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_nutrient_analysis"
+
+    @property
+    def native_value(self) -> str | None:
+        if self._diagnosis_data is None:
+            return None
+        hypotheses = self._diagnosis_data.get("mulders_hypotheses", [])
+        if not hypotheses:
+            return "none"
+        return hypotheses[0].get("excess", "unknown")
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        if self._diagnosis_data is None:
+            return None
+        hypotheses = self._diagnosis_data.get("mulders_hypotheses", [])
+        return {
+            "hypotheses": [
+                {
+                    "excess": h.get("excess"),
+                    "explains": h.get("explains", []),
+                    "evidence": h.get("evidence"),
+                    "evidence_count": h.get("evidence_count"),
+                }
+                for h in hypotheses
+            ],
+            "count": len(hypotheses),
         }
 
     def _update_from_data(self, data: dict) -> None:
