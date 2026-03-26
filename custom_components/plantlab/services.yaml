@@ -1,0 +1,17 @@
+diagnose:
+  name: Diagnose plant health
+  description: Send a plant image to PlantLab API for health diagnosis.
+  fields:
+    entity_id:
+      name: Camera entity
+      description: Camera entity to capture a snapshot from.
+      example: camera.grow_tent
+      selector:
+        entity:
+          domain: camera
+    image_path:
+      name: Image path
+      description: Local file path to an image to diagnose.
+      example: /config/www/plant_snapshot.jpg
+      selector:
+        text:

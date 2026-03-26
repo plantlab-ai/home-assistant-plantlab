@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to PlantLab",
+        "description": "Enter your PlantLab API key. Get one free at plantlab.ai",
+        "data": {
+          "api_key": "API Key",
+          "host": "API Host (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key",
+      "cannot_connect": "Unable to connect to PlantLab API"
+    },
+    "abort": {
+      "already_configured": "PlantLab is already configured"
+    }
+  }
+}
