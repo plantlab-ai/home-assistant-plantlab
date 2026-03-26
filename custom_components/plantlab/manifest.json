@@ -1,7 +1,7 @@
 {
   "domain": "plantlab",
   "name": "PlantLab Plant Diagnosis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "documentation": "https://github.com/plantlab-ai/home-assistant-plantlab",
   "issue_tracker": "https://github.com/plantlab-ai/home-assistant-plantlab/issues",
   "codeowners": ["@plantlab-ai"],

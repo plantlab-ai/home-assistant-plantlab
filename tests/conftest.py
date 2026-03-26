@@ -101,7 +101,20 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
             "display_name": "Spider Mites",
         },
     ],
-    "mulders_hypotheses": [],
+    "mulders_hypotheses": [
+        {
+            "excess": "potassium_excess",
+            "explains": ["nitrogen_deficiency"],
+            "evidence": 0.85,
+            "evidence_count": 1,
+        },
+        {
+            "excess": "calcium_excess",
+            "explains": ["nitrogen_deficiency"],
+            "evidence": 0.85,
+            "evidence_count": 1,
+        },
+    ],
     "diagnostic_confidence": 0.82,
     "safety_classification": "confident",
     "uncertainty_factors": [],
