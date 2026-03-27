@@ -1,12 +1,12 @@
 {
   "domain": "plantlab",
   "name": "PlantLab Plant Diagnosis",
-  "version": "0.1.1",
-  "documentation": "https://github.com/plantlab-ai/home-assistant-plantlab",
-  "issue_tracker": "https://github.com/plantlab-ai/home-assistant-plantlab/issues",
   "codeowners": ["@plantlab-ai"],
-  "requirements": [],
   "config_flow": true,
+  "documentation": "https://github.com/plantlab-ai/home-assistant-plantlab",
+  "integration_type": "service",
   "iot_class": "cloud_polling",
-  "integration_type": "service"
+  "issue_tracker": "https://github.com/plantlab-ai/home-assistant-plantlab/issues",
+  "requirements": [],
+  "version": "0.1.1"
 }
