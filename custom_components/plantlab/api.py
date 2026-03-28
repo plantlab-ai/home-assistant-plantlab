@@ -44,8 +44,6 @@ class PlantLabApiClient:
                 resp.raise_for_status()
                 return True
         except (aiohttp.ClientError, TimeoutError) as err:
-            if isinstance(err, aiohttp.ClientResponseError) and err.status == 401:
-                raise PlantLabAuthError("Invalid API key") from err
             raise PlantLabConnectionError(f"Unable to connect to PlantLab API at {self._host}") from err
 
     async def async_diagnose(self, image_bytes: bytes, filename: str = "snapshot.jpg") -> dict:
