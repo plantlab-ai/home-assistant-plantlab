@@ -44,11 +44,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         if entity_id:
             image_bytes = await _get_image_from_camera(hass, entity_id)
+            filename = "snapshot.jpg"
         else:
             image_bytes = await hass.async_add_executor_job(_read_image_file, image_path)
+            filename = image_path.rsplit("/", 1)[-1] if "/" in image_path else image_path
 
         try:
-            result = await client.async_diagnose(image_bytes)
+            result = await client.async_diagnose(image_bytes, filename=filename)
         except PlantLabAuthError as err:
             raise HomeAssistantError(f"Authentication failed: {err}") from err
         except PlantLabRateLimitError as err:
