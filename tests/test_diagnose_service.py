@@ -36,7 +36,7 @@ async def test_diagnose_with_image_path(hass: HomeAssistant, mock_config_entry, 
 
     assert result["success"] is True
     assert result["is_cannabis"] is True
-    mock_api_client.async_diagnose.assert_called_once_with(b"fake_image")
+    mock_api_client.async_diagnose.assert_called_once_with(b"fake_image", filename="test.jpg")
 
 
 async def test_diagnose_with_camera_entity(hass: HomeAssistant, mock_config_entry, mock_api_client):
@@ -56,7 +56,7 @@ async def test_diagnose_with_camera_entity(hass: HomeAssistant, mock_config_entr
         )
 
     assert result["success"] is True
-    mock_api_client.async_diagnose.assert_called_once_with(b"camera_image")
+    mock_api_client.async_diagnose.assert_called_once_with(b"camera_image", filename="snapshot.jpg")
 
 
 async def test_diagnose_missing_input(hass: HomeAssistant, mock_config_entry, mock_api_client):

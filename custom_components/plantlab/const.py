@@ -1,3 +1,5 @@
+from homeassistant.const import ATTR_ENTITY_ID  # noqa: F401
+
 DOMAIN = "plantlab"
 
 CONF_API_KEY = "api_key"
@@ -8,5 +10,4 @@ DEFAULT_TIMEOUT = 30
 
 SERVICE_DIAGNOSE = "diagnose"
 
-ATTR_ENTITY_ID = "entity_id"
 ATTR_IMAGE_PATH = "image_path"

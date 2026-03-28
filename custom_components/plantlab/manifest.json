@@ -5,7 +5,7 @@
   "config_flow": true,
   "documentation": "https://github.com/plantlab-ai/home-assistant-plantlab",
   "integration_type": "service",
-  "iot_class": "cloud_polling",
+  "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/plantlab-ai/home-assistant-plantlab/issues",
   "requirements": [],
   "version": "0.1.1"

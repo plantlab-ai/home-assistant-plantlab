@@ -88,6 +88,8 @@ async def _get_image_from_camera(hass: HomeAssistant, entity_id: str) -> bytes:
     try:
         image = await async_get_image(hass, entity_id)
         return image.content
+    except HomeAssistantError:
+        raise
     except Exception as err:
         raise HomeAssistantError(f"Failed to get image from camera {entity_id}: {err}") from err
 

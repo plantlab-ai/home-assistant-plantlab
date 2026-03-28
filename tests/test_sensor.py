@@ -124,3 +124,21 @@ async def test_sensors_after_not_cannabis(hass: HomeAssistant, mock_config_entry
     health = hass.states.get("sensor.plantlab_health")
     assert health.state == "not_cannabis"
     assert health.attributes["is_cannabis"] is False
+
+    conditions = hass.states.get("sensor.plantlab_conditions")
+    assert conditions.state == "none"
+    assert conditions.attributes["count"] == 0
+
+    pests = hass.states.get("sensor.plantlab_pests")
+    assert pests.state == "none"
+    assert pests.attributes["count"] == 0
+
+    growth = hass.states.get("sensor.plantlab_growth_stage")
+    assert growth.state == "unknown"
+
+    nutrient = hass.states.get("sensor.plantlab_nutrient_analysis")
+    assert nutrient.state == "none"
+    assert nutrient.attributes["count"] == 0
+
+    problem = hass.states.get("binary_sensor.plantlab_problem")
+    assert problem.state == "unknown"

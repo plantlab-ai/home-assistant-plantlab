@@ -52,11 +52,7 @@ class PlantLabBaseSensor(SensorEntity):
     @callback
     def _handle_diagnosis_update(self, data: dict) -> None:
         self._diagnosis_data = data
-        self._update_from_data(data)
         self.async_write_ha_state()
-
-    def _update_from_data(self, data: dict) -> None:
-        raise NotImplementedError
 
 
 class PlantLabHealthSensor(PlantLabBaseSensor):
@@ -87,9 +83,6 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
             "is_cannabis": self._diagnosis_data.get("is_cannabis"),
             "cannabis_confidence": self._diagnosis_data.get("cannabis_confidence"),
         }
-
-    def _update_from_data(self, data: dict) -> None:
-        pass
 
 
 class PlantLabConditionsSensor(PlantLabBaseSensor):
@@ -122,9 +115,6 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
             "count": len(conditions),
         }
 
-    def _update_from_data(self, data: dict) -> None:
-        pass
-
 
 class PlantLabPestsSensor(PlantLabBaseSensor):
     _attr_name = "Pests"
@@ -155,9 +145,6 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
             "count": len(pests),
         }
 
-    def _update_from_data(self, data: dict) -> None:
-        pass
-
 
 class PlantLabGrowthStageSensor(PlantLabBaseSensor):
     _attr_name = "Growth Stage"
@@ -180,9 +167,6 @@ class PlantLabGrowthStageSensor(PlantLabBaseSensor):
         return {
             "confidence": self._diagnosis_data.get("growth_stage_confidence"),
         }
-
-    def _update_from_data(self, data: dict) -> None:
-        pass
 
 
 class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
@@ -219,6 +203,3 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
             ],
             "count": len(hypotheses),
         }
-
-    def _update_from_data(self, data: dict) -> None:
-        pass

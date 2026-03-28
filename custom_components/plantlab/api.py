@@ -74,6 +74,4 @@ class PlantLabApiClient:
                 resp.raise_for_status()
                 return await resp.json()
         except (aiohttp.ClientError, TimeoutError) as err:
-            if isinstance(err, (PlantLabAuthError, PlantLabRateLimitError)):
-                raise
             raise PlantLabConnectionError(f"Error communicating with PlantLab API: {err}") from err
