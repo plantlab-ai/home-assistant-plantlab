@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/plantlab-ai/home-assistant-plantlab/actions/workflows/tests.yml/badge.svg)](https://github.com/plantlab-ai/home-assistant-plantlab/actions/workflows/tests.yml)
 
-AI-powered plant health diagnosis for Home Assistant. Capture a photo of your cannabis plant, send it to the PlantLab API, and get instant health analysis with condition and pest detection.
+Plant health diagnosis for Home Assistant. Point a camera at your cannabis plant, and PlantLab tells you what's wrong - nutrient deficiencies, pests, diseases, growth stage, and nutrient antagonism analysis via Mulder's Chart.
 
 ## Installation
 
@@ -79,11 +79,12 @@ After your first diagnosis, these entities become available:
 | `sensor.plantlab_conditions` | Top detected condition (e.g., Nitrogen Deficiency) |
 | `sensor.plantlab_pests` | Top detected pest (e.g., Spider Mites) |
 | `sensor.plantlab_growth_stage` | Growth stage: vegetative / flowering / seedling |
+| `sensor.plantlab_nutrient_analysis` | Mulder's Chart nutrient antagonism hypothesis (e.g., Potassium Excess) |
 | `binary_sensor.plantlab_problem` | On when plant is unhealthy |
 
 ## Free Tier
 
-PlantLab's free tier includes 3 diagnoses per day - enough for daily monitoring of a home grow.
+PlantLab's free tier gives you 3 diagnoses per day - one morning check, one evening, and a spare for when you're feeling paranoid.
 
 ## Changelog
 
