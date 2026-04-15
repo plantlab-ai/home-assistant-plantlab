@@ -21,6 +21,7 @@ async def async_setup_entry(
             PlantLabPestsSensor(entry),
             PlantLabGrowthStageSensor(entry),
             PlantLabNutrientAnalysisSensor(entry),
+            PlantLabDiagnosticConfidenceSensor(entry),
         ]
     )
 
@@ -166,6 +167,34 @@ class PlantLabGrowthStageSensor(PlantLabBaseSensor):
             return None
         return {
             "confidence": self._diagnosis_data.get("growth_stage_confidence"),
+        }
+
+
+class PlantLabDiagnosticConfidenceSensor(PlantLabBaseSensor):
+    _attr_name = "Diagnostic Confidence"
+    _attr_icon = "mdi:gauge"
+    _attr_native_unit_of_measurement = "%"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_diagnostic_confidence"
+
+    @property
+    def native_value(self) -> float | None:
+        if self._diagnosis_data is None:
+            return None
+        confidence = self._diagnosis_data.get("diagnostic_confidence")
+        if confidence is None:
+            return None
+        return round(confidence * 100, 1)
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        if self._diagnosis_data is None:
+            return None
+        return {
+            "safety_classification": self._diagnosis_data.get("safety_classification"),
+            "uncertainty_factors": self._diagnosis_data.get("uncertainty_factors", []),
         }
 
 

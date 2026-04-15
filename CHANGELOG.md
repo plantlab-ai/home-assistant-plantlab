@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-04-15
+
+### Added
+
+- `sensor.plantlab_diagnostic_confidence` — overall diagnosis confidence as a percentage (0-100%). Attributes include `safety_classification` and `uncertainty_factors` for automation use.
+
 ## [0.1.1] - 2026-03-26
 
 ### Added

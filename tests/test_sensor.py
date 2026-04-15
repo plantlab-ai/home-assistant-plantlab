@@ -48,6 +48,10 @@ async def test_sensors_initial_state(hass: HomeAssistant, mock_config_entry, moc
     assert nutrient is not None
     assert nutrient.state == "unknown"
 
+    diagnostic_conf = hass.states.get("sensor.plantlab_diagnostic_confidence")
+    assert diagnostic_conf is not None
+    assert diagnostic_conf.state == "unknown"
+
 
 async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
@@ -78,6 +82,11 @@ async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_
     nutrient = hass.states.get("sensor.plantlab_nutrient_analysis")
     assert nutrient.state == "none"
     assert nutrient.attributes["count"] == 0
+
+    diagnostic_conf = hass.states.get("sensor.plantlab_diagnostic_confidence")
+    assert diagnostic_conf.state == "95.0"
+    assert diagnostic_conf.attributes["safety_classification"] == "confident"
+    assert diagnostic_conf.attributes["uncertainty_factors"] == []
 
 
 async def test_sensors_after_unhealthy_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
@@ -114,6 +123,10 @@ async def test_sensors_after_unhealthy_diagnosis(hass: HomeAssistant, mock_confi
     assert nutrient.attributes["hypotheses"][0]["evidence"] == 0.85
     assert nutrient.attributes["hypotheses"][0]["evidence_count"] == 1
 
+    diagnostic_conf = hass.states.get("sensor.plantlab_diagnostic_confidence")
+    assert diagnostic_conf.state == "82.0"
+    assert diagnostic_conf.attributes["safety_classification"] == "confident"
+
 
 async def test_sensors_after_not_cannabis(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
@@ -142,3 +155,18 @@ async def test_sensors_after_not_cannabis(hass: HomeAssistant, mock_config_entry
 
     problem = hass.states.get("binary_sensor.plantlab_problem")
     assert problem.state == "unknown"
+
+    diagnostic_conf = hass.states.get("sensor.plantlab_diagnostic_confidence")
+    assert diagnostic_conf.state == "unknown"
+
+
+async def test_diagnostic_confidence_zero_value(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """Zero confidence should show 0.0, not unknown."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    data = {**DIAGNOSE_RESPONSE_HEALTHY, "diagnostic_confidence": 0.0}
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
+    await hass.async_block_till_done()
+
+    diagnostic_conf = hass.states.get("sensor.plantlab_diagnostic_confidence")
+    assert diagnostic_conf.state == "0.0"
