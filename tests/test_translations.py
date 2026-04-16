@@ -125,12 +125,14 @@ async def test_german_translations_are_loaded(hass):
     )
 
     assert entity_translations["component.plantlab.entity.sensor.conditions.name"] == "Probleme"
-    assert entity_translations[
-        "component.plantlab.entity.sensor.conditions.state_attributes.severity.name"
-    ] == "Schweregrad"
-    assert entity_translations[
-        "component.plantlab.entity.sensor.conditions.state_attributes.severity.state.moderate"
-    ] == "Mittel"
+    assert (
+        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.severity.name"]
+        == "Schweregrad"
+    )
+    assert (
+        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.severity.state.moderate"]
+        == "Mittel"
+    )
     assert config_translations["component.plantlab.config.step.user.title"] == "Mit PlantLab verbinden"
 
 
@@ -151,9 +153,10 @@ async def test_unsupported_language_falls_back_to_english(hass):
     )
 
     assert entity_translations["component.plantlab.entity.sensor.conditions.name"] == "Conditions"
-    assert entity_translations[
-        "component.plantlab.entity.sensor.conditions.state_attributes.severity.state.moderate"
-    ] == "Moderate"
+    assert (
+        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.severity.state.moderate"]
+        == "Moderate"
+    )
     assert config_translations["component.plantlab.config.step.user.title"] == "Connect to PlantLab"
 
 
