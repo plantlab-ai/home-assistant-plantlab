@@ -1,0 +1,121 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit PlantLab verbinden",
+        "description": "Gib deinen PlantLab-API-Schlüssel ein. Einen kostenlosen Schlüssel bekommst du auf plantlab.ai",
+        "data": {
+          "api_key": "API-Schlüssel",
+          "host": "API-Host (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Ungültiger API-Schlüssel",
+      "cannot_connect": "Verbindung zur PlantLab-API nicht möglich"
+    },
+    "abort": {
+      "already_configured": "PlantLab ist bereits eingerichtet"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "health": {
+        "name": "Gesundheit",
+        "state": {
+          "healthy": "Gesund",
+          "unhealthy": "Ungesund",
+          "not_cannabis": "Kein Cannabis"
+        },
+        "state_attributes": {
+          "confidence": {"name": "Konfidenz"},
+          "is_cannabis": {"name": "Ist Cannabis"},
+          "cannabis_confidence": {"name": "Cannabis-Konfidenz"}
+        }
+      },
+      "conditions": {
+        "name": "Probleme",
+        "state": {
+          "none": "Keine"
+        },
+        "state_attributes": {
+          "conditions": {"name": "Probleme"},
+          "count": {"name": "Anzahl"},
+          "severity": {
+            "name": "Schweregrad",
+            "state": {
+              "mild": "Leicht",
+              "moderate": "Mittel",
+              "severe": "Schwer"
+            }
+          },
+          "treatment_steps": {"name": "Behandlungsschritte"},
+          "confidence": {"name": "Konfidenz"}
+        }
+      },
+      "pests": {
+        "name": "Schädlinge",
+        "state": {
+          "none": "Keine"
+        },
+        "state_attributes": {
+          "pests": {"name": "Schädlinge"},
+          "count": {"name": "Anzahl"},
+          "severity": {
+            "name": "Schweregrad",
+            "state": {
+              "mild": "Leicht",
+              "moderate": "Mittel",
+              "severe": "Schwer"
+            }
+          },
+          "treatment_steps": {"name": "Behandlungsschritte"},
+          "confidence": {"name": "Konfidenz"}
+        }
+      },
+      "growth_stage": {
+        "name": "Wachstumsphase",
+        "state": {
+          "seedling": "Sämling",
+          "vegetative": "Vegetativ",
+          "flowering": "Blüte",
+          "unknown": "Unbekannt"
+        },
+        "state_attributes": {
+          "confidence": {"name": "Konfidenz"}
+        }
+      },
+      "nutrient_analysis": {
+        "name": "Nährstoffanalyse",
+        "state": {
+          "none": "Keine"
+        },
+        "state_attributes": {
+          "hypotheses": {"name": "Hypothesen"},
+          "count": {"name": "Anzahl"}
+        }
+      },
+      "diagnostic_confidence": {
+        "name": "Diagnosekonfidenz",
+        "state_attributes": {
+          "safety_classification": {
+            "name": "Sicherheitsklassifikation",
+            "state": {
+              "confident": "Sicher"
+            }
+          },
+          "uncertainty_factors": {"name": "Unsicherheitsfaktoren"}
+        }
+      }
+    },
+    "binary_sensor": {
+      "problem": {
+        "name": "Problem",
+        "state_attributes": {
+          "problems": {"name": "Probleme"},
+          "count": {"name": "Anzahl"}
+        }
+      }
+    }
+  }
+}

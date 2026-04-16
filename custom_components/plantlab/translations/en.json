@@ -17,5 +17,105 @@
     "abort": {
       "already_configured": "PlantLab is already configured"
     }
+  },
+  "entity": {
+    "sensor": {
+      "health": {
+        "name": "Health",
+        "state": {
+          "healthy": "Healthy",
+          "unhealthy": "Unhealthy",
+          "not_cannabis": "Not cannabis"
+        },
+        "state_attributes": {
+          "confidence": {"name": "Confidence"},
+          "is_cannabis": {"name": "Is cannabis"},
+          "cannabis_confidence": {"name": "Cannabis confidence"}
+        }
+      },
+      "conditions": {
+        "name": "Conditions",
+        "state": {
+          "none": "None"
+        },
+        "state_attributes": {
+          "conditions": {"name": "Conditions"},
+          "count": {"name": "Count"},
+          "severity": {
+            "name": "Severity",
+            "state": {
+              "mild": "Mild",
+              "moderate": "Moderate",
+              "severe": "Severe"
+            }
+          },
+          "treatment_steps": {"name": "Treatment steps"},
+          "confidence": {"name": "Confidence"}
+        }
+      },
+      "pests": {
+        "name": "Pests",
+        "state": {
+          "none": "None"
+        },
+        "state_attributes": {
+          "pests": {"name": "Pests"},
+          "count": {"name": "Count"},
+          "severity": {
+            "name": "Severity",
+            "state": {
+              "mild": "Mild",
+              "moderate": "Moderate",
+              "severe": "Severe"
+            }
+          },
+          "treatment_steps": {"name": "Treatment steps"},
+          "confidence": {"name": "Confidence"}
+        }
+      },
+      "growth_stage": {
+        "name": "Growth stage",
+        "state": {
+          "seedling": "Seedling",
+          "vegetative": "Vegetative",
+          "flowering": "Flowering",
+          "unknown": "Unknown"
+        },
+        "state_attributes": {
+          "confidence": {"name": "Confidence"}
+        }
+      },
+      "nutrient_analysis": {
+        "name": "Nutrient analysis",
+        "state": {
+          "none": "None"
+        },
+        "state_attributes": {
+          "hypotheses": {"name": "Hypotheses"},
+          "count": {"name": "Count"}
+        }
+      },
+      "diagnostic_confidence": {
+        "name": "Diagnostic confidence",
+        "state_attributes": {
+          "safety_classification": {
+            "name": "Safety classification",
+            "state": {
+              "confident": "Confident"
+            }
+          },
+          "uncertainty_factors": {"name": "Uncertainty factors"}
+        }
+      }
+    },
+    "binary_sensor": {
+      "problem": {
+        "name": "Problem",
+        "state_attributes": {
+          "problems": {"name": "Problems"},
+          "count": {"name": "Count"}
+        }
+      }
+    }
   }
 }

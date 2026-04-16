@@ -87,6 +87,11 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
     "health_confidence": 0.87,
     "growth_stage": "vegetative",
     "growth_stage_confidence": 0.89,
+    "severity": "moderate",
+    "treatment_steps": [
+        "Inspect leaf undersides for active pests.",
+        "Reduce nitrogen-heavy feeding until new growth stabilizes.",
+    ],
     "conditions": [
         {
             "class_id": "nitrogen_deficiency",

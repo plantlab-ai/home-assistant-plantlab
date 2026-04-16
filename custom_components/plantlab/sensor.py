@@ -9,6 +9,23 @@ from .const import DOMAIN
 SIGNAL_DIAGNOSIS_UPDATE = f"{DOMAIN}_diagnosis_update"
 
 
+def _get_diagnosis_severity(data: dict, diagnoses: list[dict]) -> str | None:
+    if "severity" in data:
+        return data.get("severity")
+    if diagnoses:
+        return diagnoses[0].get("severity")
+    return None
+
+
+def _get_treatment_steps(data: dict, diagnoses: list[dict]) -> list[str]:
+    treatment_steps = data.get("treatment_steps")
+    if treatment_steps is None and diagnoses:
+        treatment_steps = diagnoses[0].get("treatment_steps")
+    if isinstance(treatment_steps, list):
+        return [step for step in treatment_steps if isinstance(step, str)]
+    return []
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -57,7 +74,7 @@ class PlantLabBaseSensor(SensorEntity):
 
 
 class PlantLabHealthSensor(PlantLabBaseSensor):
-    _attr_name = "Health"
+    _attr_translation_key = "health"
     _attr_icon = "mdi:leaf"
 
     @property
@@ -87,7 +104,7 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
 
 
 class PlantLabConditionsSensor(PlantLabBaseSensor):
-    _attr_name = "Conditions"
+    _attr_translation_key = "conditions"
     _attr_icon = "mdi:alert-circle-outline"
 
     @property
@@ -114,11 +131,14 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
                 for c in conditions
             ],
             "count": len(conditions),
+            "severity": _get_diagnosis_severity(self._diagnosis_data, conditions),
+            "treatment_steps": _get_treatment_steps(self._diagnosis_data, conditions),
+            "confidence": self._diagnosis_data.get("diagnostic_confidence"),
         }
 
 
 class PlantLabPestsSensor(PlantLabBaseSensor):
-    _attr_name = "Pests"
+    _attr_translation_key = "pests"
     _attr_icon = "mdi:bug-outline"
 
     @property
@@ -144,11 +164,14 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
                 {"name": p.get("display_name", p.get("class_id")), "confidence": p.get("confidence")} for p in pests
             ],
             "count": len(pests),
+            "severity": _get_diagnosis_severity(self._diagnosis_data, pests),
+            "treatment_steps": _get_treatment_steps(self._diagnosis_data, pests),
+            "confidence": self._diagnosis_data.get("diagnostic_confidence"),
         }
 
 
 class PlantLabGrowthStageSensor(PlantLabBaseSensor):
-    _attr_name = "Growth Stage"
+    _attr_translation_key = "growth_stage"
     _attr_icon = "mdi:sprout"
 
     @property
@@ -171,7 +194,7 @@ class PlantLabGrowthStageSensor(PlantLabBaseSensor):
 
 
 class PlantLabDiagnosticConfidenceSensor(PlantLabBaseSensor):
-    _attr_name = "Diagnostic Confidence"
+    _attr_translation_key = "diagnostic_confidence"
     _attr_icon = "mdi:gauge"
     _attr_native_unit_of_measurement = "%"
 
@@ -199,7 +222,7 @@ class PlantLabDiagnosticConfidenceSensor(PlantLabBaseSensor):
 
 
 class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
-    _attr_name = "Nutrient Analysis"
+    _attr_translation_key = "nutrient_analysis"
     _attr_icon = "mdi:flask-outline"
 
     @property

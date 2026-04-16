@@ -21,7 +21,7 @@ async def async_setup_entry(
 
 class PlantLabProblemSensor(BinarySensorEntity):
     _attr_has_entity_name = True
-    _attr_name = "Problem"
+    _attr_translation_key = "problem"
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
 
     def __init__(self, entry: ConfigEntry) -> None:

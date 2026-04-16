@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-04-16
+
+### Added
+
+- Promoted `severity`, `treatment_steps`, and inline `confidence` attributes on the Conditions and Pests sensors for cleaner Home Assistant card rendering.
+- German (`de`) translations for entity names, states, attributes, and config flow copy, alongside complete English translation catalogs.
+- Translation integrity and fallback tests covering German loading, English fallback for unsupported or incomplete languages, and required translation key coverage.
+
 ## [0.2.0] - 2026-04-15
 
 ### Added
