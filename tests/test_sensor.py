@@ -67,15 +67,11 @@ async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_
     conditions = hass.states.get("sensor.plantlab_conditions")
     assert conditions.state == "none"
     assert conditions.attributes["count"] == 0
-    assert conditions.attributes["severity"] is None
-    assert conditions.attributes["treatment_steps"] == []
     assert conditions.attributes["confidence"] == 0.95
 
     pests = hass.states.get("sensor.plantlab_pests")
     assert pests.state == "none"
     assert pests.attributes["count"] == 0
-    assert pests.attributes["severity"] is None
-    assert pests.attributes["treatment_steps"] == []
     assert pests.attributes["confidence"] == 0.95
 
     growth = hass.states.get("sensor.plantlab_growth_stage")
@@ -109,21 +105,11 @@ async def test_sensors_after_unhealthy_diagnosis(hass: HomeAssistant, mock_confi
     assert conditions.attributes["count"] == 1
     assert conditions.attributes["conditions"][0]["name"] == "Nitrogen Deficiency"
     assert conditions.attributes["conditions"][0]["confidence"] == 0.85
-    assert conditions.attributes["severity"] == "moderate"
-    assert conditions.attributes["treatment_steps"] == [
-        "Inspect leaf undersides for active pests.",
-        "Reduce nitrogen-heavy feeding until new growth stabilizes.",
-    ]
     assert conditions.attributes["confidence"] == 0.82
 
     pests = hass.states.get("sensor.plantlab_pests")
     assert pests.state == "Spider Mites"
     assert pests.attributes["count"] == 1
-    assert pests.attributes["severity"] == "moderate"
-    assert pests.attributes["treatment_steps"] == [
-        "Inspect leaf undersides for active pests.",
-        "Reduce nitrogen-heavy feeding until new growth stabilizes.",
-    ]
     assert pests.attributes["confidence"] == 0.82
 
     growth = hass.states.get("sensor.plantlab_growth_stage")
@@ -159,14 +145,10 @@ async def test_sensors_after_not_cannabis(hass: HomeAssistant, mock_config_entry
     conditions = hass.states.get("sensor.plantlab_conditions")
     assert conditions.state == "none"
     assert conditions.attributes["count"] == 0
-    assert conditions.attributes["severity"] is None
-    assert conditions.attributes["treatment_steps"] == []
 
     pests = hass.states.get("sensor.plantlab_pests")
     assert pests.state == "none"
     assert pests.attributes["count"] == 0
-    assert pests.attributes["severity"] is None
-    assert pests.attributes["treatment_steps"] == []
 
     growth = hass.states.get("sensor.plantlab_growth_stage")
     assert growth.state == "unknown"

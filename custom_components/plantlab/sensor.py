@@ -9,23 +9,6 @@ from .const import DOMAIN
 SIGNAL_DIAGNOSIS_UPDATE = f"{DOMAIN}_diagnosis_update"
 
 
-def _get_diagnosis_severity(data: dict, diagnoses: list[dict]) -> str | None:
-    if "severity" in data:
-        return data.get("severity")
-    if diagnoses:
-        return diagnoses[0].get("severity")
-    return None
-
-
-def _get_treatment_steps(data: dict, diagnoses: list[dict]) -> list[str]:
-    treatment_steps = data.get("treatment_steps")
-    if treatment_steps is None and diagnoses:
-        treatment_steps = diagnoses[0].get("treatment_steps")
-    if isinstance(treatment_steps, list):
-        return [step for step in treatment_steps if isinstance(step, str)]
-    return []
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -131,8 +114,6 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
                 for c in conditions
             ],
             "count": len(conditions),
-            "severity": _get_diagnosis_severity(self._diagnosis_data, conditions),
-            "treatment_steps": _get_treatment_steps(self._diagnosis_data, conditions),
             "confidence": self._diagnosis_data.get("diagnostic_confidence"),
         }
 
@@ -164,8 +145,6 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
                 {"name": p.get("display_name", p.get("class_id")), "confidence": p.get("confidence")} for p in pests
             ],
             "count": len(pests),
-            "severity": _get_diagnosis_severity(self._diagnosis_data, pests),
-            "treatment_steps": _get_treatment_steps(self._diagnosis_data, pests),
             "confidence": self._diagnosis_data.get("diagnostic_confidence"),
         }
 

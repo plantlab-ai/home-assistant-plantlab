@@ -41,15 +41,6 @@
         "state_attributes": {
           "conditions": {"name": "Probleme"},
           "count": {"name": "Anzahl"},
-          "severity": {
-            "name": "Schweregrad",
-            "state": {
-              "mild": "Leicht",
-              "moderate": "Mittel",
-              "severe": "Schwer"
-            }
-          },
-          "treatment_steps": {"name": "Behandlungsschritte"},
           "confidence": {"name": "Konfidenz"}
         }
       },
@@ -61,15 +52,6 @@
         "state_attributes": {
           "pests": {"name": "Schädlinge"},
           "count": {"name": "Anzahl"},
-          "severity": {
-            "name": "Schweregrad",
-            "state": {
-              "mild": "Leicht",
-              "moderate": "Mittel",
-              "severe": "Schwer"
-            }
-          },
-          "treatment_steps": {"name": "Behandlungsschritte"},
           "confidence": {"name": "Konfidenz"}
         }
       },

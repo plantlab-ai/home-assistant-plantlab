@@ -29,21 +29,11 @@ REQUIRED_TRANSLATION_PATHS = {
     "entity.sensor.conditions.state.none",
     "entity.sensor.conditions.state_attributes.conditions.name",
     "entity.sensor.conditions.state_attributes.count.name",
-    "entity.sensor.conditions.state_attributes.severity.name",
-    "entity.sensor.conditions.state_attributes.severity.state.mild",
-    "entity.sensor.conditions.state_attributes.severity.state.moderate",
-    "entity.sensor.conditions.state_attributes.severity.state.severe",
-    "entity.sensor.conditions.state_attributes.treatment_steps.name",
     "entity.sensor.conditions.state_attributes.confidence.name",
     "entity.sensor.pests.name",
     "entity.sensor.pests.state.none",
     "entity.sensor.pests.state_attributes.pests.name",
     "entity.sensor.pests.state_attributes.count.name",
-    "entity.sensor.pests.state_attributes.severity.name",
-    "entity.sensor.pests.state_attributes.severity.state.mild",
-    "entity.sensor.pests.state_attributes.severity.state.moderate",
-    "entity.sensor.pests.state_attributes.severity.state.severe",
-    "entity.sensor.pests.state_attributes.treatment_steps.name",
     "entity.sensor.pests.state_attributes.confidence.name",
     "entity.sensor.growth_stage.name",
     "entity.sensor.growth_stage.state.seedling",
@@ -125,14 +115,7 @@ async def test_german_translations_are_loaded(hass):
     )
 
     assert entity_translations["component.plantlab.entity.sensor.conditions.name"] == "Probleme"
-    assert (
-        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.severity.name"]
-        == "Schweregrad"
-    )
-    assert (
-        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.severity.state.moderate"]
-        == "Mittel"
-    )
+    assert entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.confidence.name"] == "Konfidenz"
     assert config_translations["component.plantlab.config.step.user.title"] == "Mit PlantLab verbinden"
 
 
@@ -153,10 +136,7 @@ async def test_unsupported_language_falls_back_to_english(hass):
     )
 
     assert entity_translations["component.plantlab.entity.sensor.conditions.name"] == "Conditions"
-    assert (
-        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.severity.state.moderate"]
-        == "Moderate"
-    )
+    assert entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.confidence.name"] == "Confidence"
     assert config_translations["component.plantlab.config.step.user.title"] == "Connect to PlantLab"
 
 

@@ -87,23 +87,18 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
     "health_confidence": 0.87,
     "growth_stage": "vegetative",
     "growth_stage_confidence": 0.89,
-    "severity": "moderate",
-    "treatment_steps": [
-        "Inspect leaf undersides for active pests.",
-        "Reduce nitrogen-heavy feeding until new growth stabilizes.",
-    ],
     "conditions": [
         {
             "class_id": "nitrogen_deficiency",
-            "confidence": 0.85,
             "display_name": "Nitrogen Deficiency",
+            "confidence": 0.85,
         },
     ],
     "pests": [
         {
             "class_id": "spider_mites",
-            "confidence": 0.72,
             "display_name": "Spider Mites",
+            "confidence": 0.72,
         },
     ],
     "mulders_hypotheses": [

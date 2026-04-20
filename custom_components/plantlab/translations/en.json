@@ -41,15 +41,6 @@
         "state_attributes": {
           "conditions": {"name": "Conditions"},
           "count": {"name": "Count"},
-          "severity": {
-            "name": "Severity",
-            "state": {
-              "mild": "Mild",
-              "moderate": "Moderate",
-              "severe": "Severe"
-            }
-          },
-          "treatment_steps": {"name": "Treatment steps"},
           "confidence": {"name": "Confidence"}
         }
       },
@@ -61,15 +52,6 @@
         "state_attributes": {
           "pests": {"name": "Pests"},
           "count": {"name": "Count"},
-          "severity": {
-            "name": "Severity",
-            "state": {
-              "mild": "Mild",
-              "moderate": "Moderate",
-              "severe": "Severe"
-            }
-          },
-          "treatment_steps": {"name": "Treatment steps"},
           "confidence": {"name": "Confidence"}
         }
       },
