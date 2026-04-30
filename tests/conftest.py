@@ -58,7 +58,7 @@ def mock_api_client_not_cannabis(mock_api_client):
 
 
 DIAGNOSE_RESPONSE_HEALTHY = {
-    "schema_version": "1.0.0",
+    "schema_version": "2.0.0",
     "success": True,
     "is_cannabis": True,
     "cannabis_confidence": 0.98,
@@ -69,8 +69,7 @@ DIAGNOSE_RESPONSE_HEALTHY = {
     "conditions": [],
     "pests": [],
     "mulders_hypotheses": [],
-    "diagnostic_confidence": 0.95,
-    "safety_classification": "confident",
+    "reliability_score": 0.95,
     "uncertainty_factors": [],
     "environmental_patterns": [],
     "progression_risks": [],
@@ -115,8 +114,7 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
             "evidence_count": 1,
         },
     ],
-    "diagnostic_confidence": 0.82,
-    "safety_classification": "confident",
+    "reliability_score": 0.82,
     "uncertainty_factors": [],
     "environmental_patterns": [],
     "progression_risks": [],
@@ -125,7 +123,7 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
 }
 
 DIAGNOSE_RESPONSE_NOT_CANNABIS = {
-    "schema_version": "1.0.0",
+    "schema_version": "2.0.0",
     "success": True,
     "is_cannabis": False,
     "cannabis_confidence": 0.12,

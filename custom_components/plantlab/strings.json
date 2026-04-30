@@ -41,7 +41,7 @@
         "state_attributes": {
           "conditions": {"name": "Conditions"},
           "count": {"name": "Count"},
-          "confidence": {"name": "Confidence"}
+          "reliability_score": {"name": "Reliability score"}
         }
       },
       "pests": {
@@ -52,7 +52,7 @@
         "state_attributes": {
           "pests": {"name": "Pests"},
           "count": {"name": "Count"},
-          "confidence": {"name": "Confidence"}
+          "reliability_score": {"name": "Reliability score"}
         }
       },
       "growth_stage": {
@@ -77,13 +77,15 @@
           "count": {"name": "Count"}
         }
       },
-      "diagnostic_confidence": {
-        "name": "Diagnostic confidence",
+      "reliability_score": {
+        "name": "Reliability score",
         "state_attributes": {
-          "safety_classification": {
-            "name": "Safety classification",
+          "reliability_label": {
+            "name": "Reliability",
             "state": {
-              "confident": "Confident"
+              "confident": "Confident",
+              "uncertain": "Uncertain",
+              "low_confidence": "Low confidence"
             }
           },
           "uncertainty_factors": {"name": "Uncertainty factors"}

@@ -21,9 +21,25 @@ async def async_setup_entry(
             PlantLabPestsSensor(entry),
             PlantLabGrowthStageSensor(entry),
             PlantLabNutrientAnalysisSensor(entry),
-            PlantLabDiagnosticConfidenceSensor(entry),
+            PlantLabReliabilityScoreSensor(entry),
         ]
     )
+
+
+# Reliability label thresholds. Stage 2 emits a continuous score in [0, 1];
+# the categorical attribute is for users who want a simple bucket in dashboards.
+_RELIABILITY_CONFIDENT_MIN = 0.7
+_RELIABILITY_UNCERTAIN_MIN = 0.3
+
+
+def _reliability_label(score: float | None) -> str | None:
+    if score is None:
+        return None
+    if score >= _RELIABILITY_CONFIDENT_MIN:
+        return "confident"
+    if score >= _RELIABILITY_UNCERTAIN_MIN:
+        return "uncertain"
+    return "low_confidence"
 
 
 class PlantLabBaseSensor(SensorEntity):
@@ -114,7 +130,7 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
                 for c in conditions
             ],
             "count": len(conditions),
-            "confidence": self._diagnosis_data.get("diagnostic_confidence"),
+            "reliability_score": self._diagnosis_data.get("reliability_score"),
         }
 
 
@@ -145,7 +161,7 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
                 {"name": p.get("display_name", p.get("class_id")), "confidence": p.get("confidence")} for p in pests
             ],
             "count": len(pests),
-            "confidence": self._diagnosis_data.get("diagnostic_confidence"),
+            "reliability_score": self._diagnosis_data.get("reliability_score"),
         }
 
 
@@ -172,30 +188,31 @@ class PlantLabGrowthStageSensor(PlantLabBaseSensor):
         }
 
 
-class PlantLabDiagnosticConfidenceSensor(PlantLabBaseSensor):
-    _attr_translation_key = "diagnostic_confidence"
+class PlantLabReliabilityScoreSensor(PlantLabBaseSensor):
+    _attr_translation_key = "reliability_score"
     _attr_icon = "mdi:gauge"
     _attr_native_unit_of_measurement = "%"
 
     @property
     def unique_id(self) -> str:
-        return f"{self._entry.entry_id}_diagnostic_confidence"
+        return f"{self._entry.entry_id}_reliability_score"
 
     @property
     def native_value(self) -> float | None:
         if self._diagnosis_data is None:
             return None
-        confidence = self._diagnosis_data.get("diagnostic_confidence")
-        if confidence is None:
+        score = self._diagnosis_data.get("reliability_score")
+        if score is None:
             return None
-        return round(confidence * 100, 1)
+        return round(score * 100, 1)
 
     @property
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
+        score = self._diagnosis_data.get("reliability_score")
         return {
-            "safety_classification": self._diagnosis_data.get("safety_classification"),
+            "reliability_label": _reliability_label(score),
             "uncertainty_factors": self._diagnosis_data.get("uncertainty_factors", []),
         }
 

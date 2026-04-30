@@ -29,12 +29,12 @@ REQUIRED_TRANSLATION_PATHS = {
     "entity.sensor.conditions.state.none",
     "entity.sensor.conditions.state_attributes.conditions.name",
     "entity.sensor.conditions.state_attributes.count.name",
-    "entity.sensor.conditions.state_attributes.confidence.name",
+    "entity.sensor.conditions.state_attributes.reliability_score.name",
     "entity.sensor.pests.name",
     "entity.sensor.pests.state.none",
     "entity.sensor.pests.state_attributes.pests.name",
     "entity.sensor.pests.state_attributes.count.name",
-    "entity.sensor.pests.state_attributes.confidence.name",
+    "entity.sensor.pests.state_attributes.reliability_score.name",
     "entity.sensor.growth_stage.name",
     "entity.sensor.growth_stage.state.seedling",
     "entity.sensor.growth_stage.state.vegetative",
@@ -45,10 +45,12 @@ REQUIRED_TRANSLATION_PATHS = {
     "entity.sensor.nutrient_analysis.state.none",
     "entity.sensor.nutrient_analysis.state_attributes.hypotheses.name",
     "entity.sensor.nutrient_analysis.state_attributes.count.name",
-    "entity.sensor.diagnostic_confidence.name",
-    "entity.sensor.diagnostic_confidence.state_attributes.safety_classification.name",
-    "entity.sensor.diagnostic_confidence.state_attributes.safety_classification.state.confident",
-    "entity.sensor.diagnostic_confidence.state_attributes.uncertainty_factors.name",
+    "entity.sensor.reliability_score.name",
+    "entity.sensor.reliability_score.state_attributes.reliability_label.name",
+    "entity.sensor.reliability_score.state_attributes.reliability_label.state.confident",
+    "entity.sensor.reliability_score.state_attributes.reliability_label.state.uncertain",
+    "entity.sensor.reliability_score.state_attributes.reliability_label.state.low_confidence",
+    "entity.sensor.reliability_score.state_attributes.uncertainty_factors.name",
     "entity.binary_sensor.problem.name",
     "entity.binary_sensor.problem.state_attributes.problems.name",
     "entity.binary_sensor.problem.state_attributes.count.name",
@@ -116,8 +118,8 @@ async def test_german_translations_are_loaded(hass):
 
     assert entity_translations["component.plantlab.entity.sensor.conditions.name"] == "Probleme"
     assert (
-        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.confidence.name"]
-        == "Konfidenz"
+        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.reliability_score.name"]
+        == "Verlässlichkeitswert"
     )
     assert config_translations["component.plantlab.config.step.user.title"] == "Mit PlantLab verbinden"
 
@@ -140,8 +142,8 @@ async def test_unsupported_language_falls_back_to_english(hass):
 
     assert entity_translations["component.plantlab.entity.sensor.conditions.name"] == "Conditions"
     assert (
-        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.confidence.name"]
-        == "Confidence"
+        entity_translations["component.plantlab.entity.sensor.conditions.state_attributes.reliability_score.name"]
+        == "Reliability score"
     )
     assert config_translations["component.plantlab.config.step.user.title"] == "Connect to PlantLab"
 

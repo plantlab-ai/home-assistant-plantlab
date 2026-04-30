@@ -41,7 +41,7 @@
         "state_attributes": {
           "conditions": {"name": "Probleme"},
           "count": {"name": "Anzahl"},
-          "confidence": {"name": "Konfidenz"}
+          "reliability_score": {"name": "Verlässlichkeitswert"}
         }
       },
       "pests": {
@@ -52,7 +52,7 @@
         "state_attributes": {
           "pests": {"name": "Schädlinge"},
           "count": {"name": "Anzahl"},
-          "confidence": {"name": "Konfidenz"}
+          "reliability_score": {"name": "Verlässlichkeitswert"}
         }
       },
       "growth_stage": {
@@ -77,13 +77,15 @@
           "count": {"name": "Anzahl"}
         }
       },
-      "diagnostic_confidence": {
-        "name": "Diagnosekonfidenz",
+      "reliability_score": {
+        "name": "Verlässlichkeitswert",
         "state_attributes": {
-          "safety_classification": {
-            "name": "Sicherheitsklassifikation",
+          "reliability_label": {
+            "name": "Verlässlichkeit",
             "state": {
-              "confident": "Sicher"
+              "confident": "Sicher",
+              "uncertain": "Unsicher",
+              "low_confidence": "Geringe Verlässlichkeit"
             }
           },
           "uncertainty_factors": {"name": "Unsicherheitsfaktoren"}

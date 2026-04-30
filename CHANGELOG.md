@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] - 2026-04-29
+
+### Changed
+
+- Migrated to PlantLab API schema 2.0.0. The integration now consumes `reliability_score` (Stage 2 output, optional 0-1 float) in place of the removed `diagnostic_confidence` and `safety_classification` fields.
+- Renamed `sensor.plantlab_diagnostic_confidence` to `sensor.plantlab_reliability_score`. The percentage state behaves as before (0-100%), and a derived `reliability_label` attribute (`confident` >= 70%, `uncertain` >= 30%, otherwise `low_confidence`) replaces the previous `safety_classification` attribute.
+- Conditions and Pests sensor `confidence` attribute renamed to `reliability_score` for consistency with the new schema.
+
+### Breaking
+
+- Entity ID change: `sensor.plantlab_diagnostic_confidence` no longer exists. Users with dashboards or automations referencing the old entity must update them to `sensor.plantlab_reliability_score`. Removing and re-adding the integration is the cleanest path; otherwise the old entity will linger as unavailable in the entity registry.
+- The `safety_classification` attribute is gone. Automations reading it should switch to either the numeric state of `sensor.plantlab_reliability_score` or the new `reliability_label` attribute.
+- When the API response omits `reliability_score` (for example, against a 1.x server, or when Stage 2 did not run), the sensor reports `unknown` rather than crashing.
+
 ## [0.3.1] - 2026-04-16
 
 ### Fixed
