@@ -90,6 +90,12 @@
           },
           "uncertainty_factors": {"name": "Uncertainty factors"}
         }
+      },
+      "engine_version": {
+        "name": "Engine version",
+        "state_attributes": {
+          "models": {"name": "Models"}
+        }
       }
     },
     "binary_sensor": {

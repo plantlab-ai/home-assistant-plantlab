@@ -2,6 +2,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
@@ -22,6 +23,7 @@ async def async_setup_entry(
             PlantLabGrowthStageSensor(entry),
             PlantLabNutrientAnalysisSensor(entry),
             PlantLabReliabilityScoreSensor(entry),
+            PlantLabEngineVersionSensor(entry),
         ]
     )
 
@@ -251,3 +253,38 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
             ],
             "count": len(hypotheses),
         }
+
+
+class PlantLabEngineVersionSensor(PlantLabBaseSensor):
+    """Reports the API build + global model iteration that served the last
+    diagnosis. Marked diagnostic so it groups under HA's diagnostic entities
+    rather than cluttering the main dashboard. State carries the API build
+    (e.g. "1.0.93"); the model iteration label is exposed as the `models`
+    attribute (e.g. "v3"). Lets automations detect engine upgrades."""
+
+    _attr_translation_key = "engine_version"
+    _attr_icon = "mdi:cog-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_engine_version"
+
+    @property
+    def native_value(self) -> str | None:
+        if self._diagnosis_data is None:
+            return None
+        engine = self._diagnosis_data.get("engine_version")
+        if not isinstance(engine, dict):
+            return None
+        api = engine.get("api")
+        return api or None
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        if self._diagnosis_data is None:
+            return None
+        engine = self._diagnosis_data.get("engine_version")
+        if not isinstance(engine, dict):
+            return {"models": None}
+        return {"models": engine.get("models")}

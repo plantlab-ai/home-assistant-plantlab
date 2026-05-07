@@ -52,12 +52,20 @@ async def test_sensors_initial_state(hass: HomeAssistant, mock_config_entry, moc
     assert reliability is not None
     assert reliability.state == "unknown"
 
+    engine_version = hass.states.get("sensor.plantlab_engine_version")
+    assert engine_version is not None
+    assert engine_version.state == "unknown"
+
 
 async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
 
     async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_HEALTHY)
     await hass.async_block_till_done()
+
+    engine_version = hass.states.get("sensor.plantlab_engine_version")
+    assert engine_version.state == "1.0.93"
+    assert engine_version.attributes["models"] == "v3"
 
     health = hass.states.get("sensor.plantlab_health")
     assert health.state == "healthy"
@@ -188,3 +196,28 @@ async def test_reliability_score_missing_remains_unknown(hass: HomeAssistant, mo
     reliability = hass.states.get("sensor.plantlab_reliability_score")
     assert reliability.state == "unknown"
     assert reliability.attributes["reliability_label"] is None
+
+
+async def test_engine_version_missing_remains_unknown(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """When the API omits engine_version (older server), the sensor stays unknown."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    data = {k: v for k, v in DIAGNOSE_RESPONSE_HEALTHY.items() if k != "engine_version"}
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
+    await hass.async_block_till_done()
+
+    engine_version = hass.states.get("sensor.plantlab_engine_version")
+    assert engine_version.state == "unknown"
+
+
+async def test_engine_version_partial_models_missing(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """If only api populates (e.g., manifest lacks model_iterations), state shows api and models attribute is None."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    data = {**DIAGNOSE_RESPONSE_HEALTHY, "engine_version": {"api": "1.0.93", "models": ""}}
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
+    await hass.async_block_till_done()
+
+    engine_version = hass.states.get("sensor.plantlab_engine_version")
+    assert engine_version.state == "1.0.93"
+    assert engine_version.attributes["models"] in (None, "")

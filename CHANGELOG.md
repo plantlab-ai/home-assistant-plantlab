@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.0] - 2026-05-07
+
+### Added
+
+- New diagnostic sensor `sensor.plantlab_engine_version` exposes the API build that served the last diagnosis (state) and the global model iteration label as a `models` attribute. Lets automations detect when PlantLab ships a new engine and react (e.g. invalidate caches, recompute thresholds, log the transition). Surfaces the `engine_version` block introduced by API schema 2.1.0.
+
+### Changed
+
+- Bumped supported PlantLab API schema to 2.1.0 (additive: new optional `engine_version` field). Older API responses without the field continue to work; the new sensor reports `unknown`.
+- German translation added for the new sensor (`Engine-Version` / `Modelle`).
+
 ## [0.4.0] - 2026-04-29
 
 ### Changed

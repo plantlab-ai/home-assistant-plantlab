@@ -58,7 +58,8 @@ def mock_api_client_not_cannabis(mock_api_client):
 
 
 DIAGNOSE_RESPONSE_HEALTHY = {
-    "schema_version": "2.0.0",
+    "schema_version": "2.1.0",
+    "engine_version": {"api": "1.0.93", "models": "v3"},
     "success": True,
     "is_cannabis": True,
     "cannabis_confidence": 0.98,
@@ -78,7 +79,8 @@ DIAGNOSE_RESPONSE_HEALTHY = {
 }
 
 DIAGNOSE_RESPONSE_UNHEALTHY = {
-    "schema_version": "1.0.0",
+    "schema_version": "2.1.0",
+    "engine_version": {"api": "1.0.93", "models": "v3"},
     "success": True,
     "is_cannabis": True,
     "cannabis_confidence": 0.97,
