@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.0] - 2026-05-08
+
+### Added
+
+- New diagnostic sensor `sensor.plantlab_history_activity` polls `GET /history` every 30 minutes and exposes diagnosis activity metrics: count of diagnoses in the last 24 hours (state), healthy/unhealthy split for 24h, total 7-day count, most-recent diagnosis timestamp, and a `tier_unavailable` flag when the endpoint returns 403 (free tier or training opt-in disabled). On 403 the sensor reports state `0` with `tier_unavailable=true` — no error state or log spam.
+- New `async_get_history` method on `PlantLabApiClient` with a 5-second timeout and `PlantLabTierError` for 403 responses.
+- `HistoryCoordinator` (`coordinator.py`) — separate `DataUpdateCoordinator` with a 30-minute polling interval, retry-once semantics on transient failures (leaves previous state on `UpdateFailed`), and a one-shot info log for the tier-unavailable case.
+- German translation for the new sensor (`Diagnoseaktivität`).
+
 ## [0.5.0] - 2026-05-07
 
 ### Added

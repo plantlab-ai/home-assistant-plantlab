@@ -4,8 +4,10 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .coordinator import HistoryCoordinator, HistoryData
 
 SIGNAL_DIAGNOSIS_UPDATE = f"{DOMAIN}_diagnosis_update"
 
@@ -15,6 +17,10 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    from . import ENTRY_KEY_HISTORY_COORDINATOR
+
+    history_coordinator: HistoryCoordinator = hass.data[DOMAIN][entry.entry_id][ENTRY_KEY_HISTORY_COORDINATOR]
+
     async_add_entities(
         [
             PlantLabHealthSensor(entry),
@@ -24,6 +30,7 @@ async def async_setup_entry(
             PlantLabNutrientAnalysisSensor(entry),
             PlantLabReliabilityScoreSensor(entry),
             PlantLabEngineVersionSensor(entry),
+            PlantLabHistoryActivitySensor(entry, history_coordinator),
         ]
     )
 
@@ -288,3 +295,59 @@ class PlantLabEngineVersionSensor(PlantLabBaseSensor):
         if not isinstance(engine, dict):
             return {"models": None}
         return {"models": engine.get("models")}
+
+
+_HISTORY_POLL_INTERVAL_MINUTES = 30
+
+
+class PlantLabHistoryActivitySensor(CoordinatorEntity[HistoryCoordinator], SensorEntity):
+    """Polls /history every 30 minutes and reports diagnosis activity metrics.
+
+    State: count of diagnoses in the last 24 hours.
+    Attributes expose healthy/unhealthy split for 24h, total 7d count,
+    most-recent timestamp, and a flag when the endpoint is unavailable
+    (free tier or training opt-in disabled).
+    """
+
+    _attr_translation_key = "history_activity"
+    _attr_icon = "mdi:history"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_has_entity_name = True
+
+    def __init__(self, entry: ConfigEntry, coordinator: HistoryCoordinator) -> None:
+        super().__init__(coordinator)
+        self._entry = entry
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_history_activity"
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self._entry.entry_id)},
+            "name": "PlantLab",
+            "manufacturer": "PlantLab AI",
+        }
+
+    @property
+    def native_value(self) -> int:
+        data: HistoryData | None = self.coordinator.data
+        if data is None:
+            return 0
+        return data.count_24h
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        data: HistoryData | None = self.coordinator.data
+        if data is None:
+            return {"tier_unavailable": False}
+        attrs: dict = {
+            "healthy_count_24h": data.healthy_count_24h,
+            "unhealthy_count_24h": data.unhealthy_count_24h,
+            "count_7d": data.count_7d,
+            "tier_unavailable": data.tier_unavailable,
+        }
+        if data.last_diagnosed_at is not None:
+            attrs["last_diagnosed_at"] = data.last_diagnosed_at
+        return attrs

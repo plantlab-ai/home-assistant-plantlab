@@ -1,8 +1,11 @@
-from unittest.mock import patch
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, patch
 
+from freezegun import freeze_time
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
+from custom_components.plantlab.api import PlantLabTierError
 from custom_components.plantlab.sensor import SIGNAL_DIAGNOSIS_UPDATE
 
 from .conftest import (
@@ -221,3 +224,145 @@ async def test_engine_version_partial_models_missing(hass: HomeAssistant, mock_c
     engine_version = hass.states.get("sensor.plantlab_engine_version")
     assert engine_version.state == "1.0.93"
     assert engine_version.attributes["models"] in (None, "")
+
+
+# ---------------------------------------------------------------------------
+# History activity sensor tests
+# ---------------------------------------------------------------------------
+
+# Freeze time at a moment where the first two HISTORY_RESPONSE items (timestamps
+# ending in T10:00 and T09:00 on 2026-05-08) fall within 24h, and the third
+# (2026-05-01) falls outside 24h but within 7d.
+_FROZEN_NOW = "2026-05-08T12:00:00+00:00"
+
+
+def _make_history_response(items: list[dict]) -> dict:
+    return {"items": items, "count": len(items), "next_cursor": ""}
+
+
+def _item(*, created_at: str, is_healthy: bool | None = True) -> dict:
+    return {
+        "id": "x",
+        "request_id": "r",
+        "class_id": "healthy" if is_healthy else "nitrogen_deficiency",
+        "confidence": 0.9,
+        "is_cannabis": True,
+        "is_healthy": is_healthy,
+        "conditions": [],
+        "pests": [],
+        "engine_version": "1.0.94",
+        "created_at": created_at,
+    }
+
+
+@freeze_time(_FROZEN_NOW)
+async def test_history_sensor_state_24h_count(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """Sensor state equals count of items with created_at within the last 24h."""
+    now = datetime.fromisoformat(_FROZEN_NOW)
+    within_24h = (now - timedelta(hours=1)).isoformat()
+    within_24h_2 = (now - timedelta(hours=12)).isoformat()
+    within_24h_3 = (now - timedelta(hours=23)).isoformat()
+    outside_24h = (now - timedelta(hours=25)).isoformat()
+    outside_24h_2 = (now - timedelta(days=3)).isoformat()
+
+    items = [
+        _item(created_at=within_24h),
+        _item(created_at=within_24h_2),
+        _item(created_at=within_24h_3),
+        _item(created_at=outside_24h),
+        _item(created_at=outside_24h_2),
+    ]
+    mock_api_client.async_get_history = AsyncMock(return_value=_make_history_response(items))
+
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+    await hass.async_block_till_done()
+
+    sensor = hass.states.get("sensor.plantlab_diagnosis_activity")
+    assert sensor is not None
+    assert sensor.state == "3"
+
+
+@freeze_time(_FROZEN_NOW)
+async def test_history_sensor_attributes_healthy_split(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """healthy_count_24h and unhealthy_count_24h reflect the is_healthy split for 24h items."""
+    now = datetime.fromisoformat(_FROZEN_NOW)
+    within_24h = (now - timedelta(hours=2)).isoformat()
+
+    items = [
+        _item(created_at=within_24h, is_healthy=True),
+        _item(created_at=within_24h, is_healthy=True),
+        _item(created_at=within_24h, is_healthy=False),
+    ]
+    mock_api_client.async_get_history = AsyncMock(return_value=_make_history_response(items))
+
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+    await hass.async_block_till_done()
+
+    sensor = hass.states.get("sensor.plantlab_diagnosis_activity")
+    assert sensor.state == "3"
+    assert sensor.attributes["healthy_count_24h"] == 2
+    assert sensor.attributes["unhealthy_count_24h"] == 1
+    assert sensor.attributes["count_7d"] == 3
+    assert sensor.attributes["tier_unavailable"] is False
+
+
+@freeze_time(_FROZEN_NOW)
+async def test_history_sensor_403_tier_unavailable(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """When API returns 403, state=0, tier_unavailable=True, no exception raised."""
+    mock_api_client.async_get_history = AsyncMock(side_effect=PlantLabTierError("free tier"))
+
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+    await hass.async_block_till_done()
+
+    sensor = hass.states.get("sensor.plantlab_diagnosis_activity")
+    assert sensor is not None
+    assert sensor.state == "0"
+    assert sensor.attributes["tier_unavailable"] is True
+
+
+@freeze_time(_FROZEN_NOW)
+async def test_history_sensor_empty_response(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """When API returns 200 with empty items list, state=0 and last_diagnosed_at is absent."""
+    mock_api_client.async_get_history = AsyncMock(return_value=_make_history_response([]))
+
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+    await hass.async_block_till_done()
+
+    sensor = hass.states.get("sensor.plantlab_diagnosis_activity")
+    assert sensor is not None
+    assert sensor.state == "0"
+    assert "last_diagnosed_at" not in sensor.attributes
+    assert sensor.attributes["tier_unavailable"] is False
+
+
+def test_history_sensor_translation_keys():
+    """strings.json, en.json and de.json all contain the history_activity sensor keys."""
+    import json
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    integration_dir = repo_root / "custom_components" / "plantlab"
+
+    required_keys = {
+        "entity.sensor.history_activity.name",
+        "entity.sensor.history_activity.state_attributes.healthy_count_24h.name",
+        "entity.sensor.history_activity.state_attributes.unhealthy_count_24h.name",
+        "entity.sensor.history_activity.state_attributes.count_7d.name",
+        "entity.sensor.history_activity.state_attributes.last_diagnosed_at.name",
+        "entity.sensor.history_activity.state_attributes.tier_unavailable.name",
+    }
+
+    def leaf_paths(data: dict, prefix: str = "") -> set[str]:
+        paths: set[str] = set()
+        for key, value in data.items():
+            path = f"{prefix}.{key}" if prefix else key
+            if isinstance(value, dict):
+                paths.update(leaf_paths(value, path))
+            else:
+                paths.add(path)
+        return paths
+
+    for fname in ("strings.json", "translations/en.json", "translations/de.json"):
+        catalog = json.loads((integration_dir / fname).read_text())
+        missing = required_keys - leaf_paths(catalog)
+        assert not missing, f"{fname} is missing keys: {missing}"
