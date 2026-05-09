@@ -54,6 +54,12 @@ REQUIRED_TRANSLATION_PATHS = {
     "entity.binary_sensor.problem.name",
     "entity.binary_sensor.problem.state_attributes.problems.name",
     "entity.binary_sensor.problem.state_attributes.count.name",
+    "entity.sensor.history_activity.name",
+    "entity.sensor.history_activity.state_attributes.healthy_count_24h.name",
+    "entity.sensor.history_activity.state_attributes.unhealthy_count_24h.name",
+    "entity.sensor.history_activity.state_attributes.count_7d.name",
+    "entity.sensor.history_activity.state_attributes.last_diagnosed_at.name",
+    "entity.sensor.history_activity.state_attributes.tier_unavailable.name",
 }
 
 

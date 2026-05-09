@@ -36,12 +36,63 @@ def mock_config_entry(hass: HomeAssistant):
     return entry
 
 
+HISTORY_RESPONSE = {
+    "items": [
+        {
+            "id": "hist-001",
+            "request_id": "req-001",
+            "class_id": "healthy",
+            "confidence": 0.95,
+            "is_cannabis": True,
+            "is_healthy": True,
+            "growth_stage": "flowering",
+            "growth_stage_confidence": 0.92,
+            "conditions": [],
+            "pests": [],
+            "engine_version": "1.0.94",
+            "created_at": "2026-05-08T10:00:00+00:00",
+        },
+        {
+            "id": "hist-002",
+            "request_id": "req-002",
+            "class_id": "nitrogen_deficiency",
+            "confidence": 0.85,
+            "is_cannabis": True,
+            "is_healthy": False,
+            "growth_stage": "vegetative",
+            "growth_stage_confidence": 0.89,
+            "conditions": [{"class_id": "nitrogen_deficiency", "confidence": 0.85}],
+            "pests": [],
+            "engine_version": "1.0.94",
+            "created_at": "2026-05-08T09:00:00+00:00",
+        },
+        {
+            "id": "hist-003",
+            "request_id": "req-003",
+            "class_id": "healthy",
+            "confidence": 0.91,
+            "is_cannabis": True,
+            "is_healthy": True,
+            "growth_stage": "seedling",
+            "growth_stage_confidence": 0.88,
+            "conditions": [],
+            "pests": [],
+            "engine_version": "1.0.94",
+            "created_at": "2026-05-01T12:00:00+00:00",
+        },
+    ],
+    "count": 3,
+    "next_cursor": "",
+}
+
+
 @pytest.fixture
 def mock_api_client():
     with patch("custom_components.plantlab.PlantLabApiClient", autospec=True) as mock_cls:
         client = mock_cls.return_value
         client.async_validate = AsyncMock(return_value=True)
         client.async_diagnose = AsyncMock(return_value=DIAGNOSE_RESPONSE_HEALTHY)
+        client.async_get_history = AsyncMock(return_value=HISTORY_RESPONSE)
         yield client
 
 

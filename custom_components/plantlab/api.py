@@ -15,6 +15,10 @@ class PlantLabRateLimitError(Exception):
     pass
 
 
+class PlantLabTierError(Exception):
+    """Raised when the API returns 403 (free tier or opt-in disabled)."""
+
+
 class PlantLabApiClient:
     def __init__(
         self,
@@ -73,3 +77,31 @@ class PlantLabApiClient:
                 return await resp.json()
         except (aiohttp.ClientError, TimeoutError) as err:
             raise PlantLabConnectionError(f"Error communicating with PlantLab API: {err}") from err
+
+    async def async_get_history(self, since_iso: str, limit: int = 1000) -> dict:
+        """Fetch diagnosis history records.
+
+        Returns the parsed JSON body on success.
+        Raises PlantLabTierError on 403 (free tier or opt-in disabled).
+        Raises PlantLabConnectionError on network/timeout errors.
+        """
+        params = {"since": since_iso, "limit": str(limit)}
+        try:
+            async with asyncio.timeout(5):
+                resp = await self._session.get(
+                    f"{self._host}/history",
+                    headers=self._headers,
+                    params=params,
+                )
+                if resp.status == 403:
+                    raise PlantLabTierError("History not available: free tier or training opt-in disabled")
+                if resp.status == 401:
+                    raise PlantLabAuthError("Invalid API key")
+                resp.raise_for_status()
+                return await resp.json()
+        except PlantLabTierError:
+            raise
+        except PlantLabAuthError:
+            raise
+        except (aiohttp.ClientError, TimeoutError) as err:
+            raise PlantLabConnectionError(f"Error fetching history from PlantLab API: {err}") from err

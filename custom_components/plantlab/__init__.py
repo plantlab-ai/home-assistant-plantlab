@@ -19,9 +19,13 @@ from .const import (
     DOMAIN,
     SERVICE_DIAGNOSE,
 )
+from .coordinator import HistoryCoordinator
 from .sensor import SIGNAL_DIAGNOSIS_UPDATE
 
 PLATFORMS = ["sensor", "binary_sensor"]
+
+ENTRY_KEY_CLIENT = "client"
+ENTRY_KEY_HISTORY_COORDINATOR = "history_coordinator"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -30,8 +34,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key=entry.data[CONF_API_KEY],
         host=entry.data.get(CONF_HOST, DEFAULT_HOST),
     )
+    history_coordinator = HistoryCoordinator(hass, entry, client)
+    await history_coordinator.async_config_entry_first_refresh()
+
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = client
+    hass.data[DOMAIN][entry.entry_id] = {
+        ENTRY_KEY_CLIENT: client,
+        ENTRY_KEY_HISTORY_COORDINATOR: history_coordinator,
+    }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

@@ -96,6 +96,16 @@
         "state_attributes": {
           "models": {"name": "Modelle"}
         }
+      },
+      "history_activity": {
+        "name": "Diagnoseaktivität",
+        "state_attributes": {
+          "healthy_count_24h": {"name": "Gesund (24h)"},
+          "unhealthy_count_24h": {"name": "Ungesund (24h)"},
+          "count_7d": {"name": "Gesamt (7d)"},
+          "last_diagnosed_at": {"name": "Letzte Diagnose"},
+          "tier_unavailable": {"name": "Tarif nicht verfügbar"}
+        }
       }
     },
     "binary_sensor": {
