@@ -108,79 +108,91 @@ def mock_api_client_not_cannabis(mock_api_client):
     return mock_api_client
 
 
+# Whole-image bbox for single-plant fixtures (schema 3.0.0).
+_WHOLE_IMAGE_BBOX = {"x0": 0.0, "y0": 0.0, "x1": 1.0, "y1": 1.0, "normalized": True}
+
 DIAGNOSE_RESPONSE_HEALTHY = {
-    "schema_version": "2.1.0",
+    "schema_version": "3.0.0",
     "engine_version": {"api": "1.0.93", "models": "v3"},
     "success": True,
     "is_cannabis": True,
     "cannabis_confidence": 0.98,
-    "is_healthy": True,
-    "health_confidence": 0.95,
-    "growth_stage": "flowering",
-    "growth_stage_confidence": 0.92,
-    "conditions": [],
-    "pests": [],
-    "mulders_hypotheses": [],
-    "reliability_score": 0.95,
-    "uncertainty_factors": [],
-    "environmental_patterns": [],
-    "progression_risks": [],
+    "results": [
+        {
+            "bbox": _WHOLE_IMAGE_BBOX,
+            "is_healthy": True,
+            "health_confidence": 0.95,
+            "growth_stage": "flowering",
+            "growth_stage_confidence": 0.92,
+            "conditions": [],
+            "pests": [],
+            "mulders_hypotheses": [],
+            "reliability_score": 0.95,
+            "uncertainty_factors": [],
+            "environmental_patterns": [],
+            "progression_risks": [],
+        },
+    ],
     "stage_times": {"stage1a": 45.2, "stage1b": 32.1, "stage1c": 18.5, "stage2": 67.3},
     "verification": {"status": "pending", "verification_id": "abc-123"},
 }
 
 DIAGNOSE_RESPONSE_UNHEALTHY = {
-    "schema_version": "2.1.0",
+    "schema_version": "3.0.0",
     "engine_version": {"api": "1.0.93", "models": "v3"},
     "success": True,
     "is_cannabis": True,
     "cannabis_confidence": 0.97,
-    "is_healthy": False,
-    "health_confidence": 0.87,
-    "growth_stage": "vegetative",
-    "growth_stage_confidence": 0.89,
-    "conditions": [
+    "results": [
         {
-            "class_id": "nitrogen_deficiency",
-            "display_name": "Nitrogen Deficiency",
-            "confidence": 0.85,
+            "bbox": _WHOLE_IMAGE_BBOX,
+            "is_healthy": False,
+            "health_confidence": 0.87,
+            "growth_stage": "vegetative",
+            "growth_stage_confidence": 0.89,
+            "conditions": [
+                {
+                    "class_id": "nitrogen_deficiency",
+                    "display_name": "Nitrogen Deficiency",
+                    "confidence": 0.85,
+                },
+            ],
+            "pests": [
+                {
+                    "class_id": "spider_mites",
+                    "display_name": "Spider Mites",
+                    "confidence": 0.72,
+                },
+            ],
+            "mulders_hypotheses": [
+                {
+                    "excess": "potassium_excess",
+                    "explains": ["nitrogen_deficiency"],
+                    "evidence": 0.85,
+                    "evidence_count": 1,
+                },
+                {
+                    "excess": "calcium_excess",
+                    "explains": ["nitrogen_deficiency"],
+                    "evidence": 0.85,
+                    "evidence_count": 1,
+                },
+            ],
+            "reliability_score": 0.82,
+            "uncertainty_factors": [],
+            "environmental_patterns": [],
+            "progression_risks": [],
         },
     ],
-    "pests": [
-        {
-            "class_id": "spider_mites",
-            "display_name": "Spider Mites",
-            "confidence": 0.72,
-        },
-    ],
-    "mulders_hypotheses": [
-        {
-            "excess": "potassium_excess",
-            "explains": ["nitrogen_deficiency"],
-            "evidence": 0.85,
-            "evidence_count": 1,
-        },
-        {
-            "excess": "calcium_excess",
-            "explains": ["nitrogen_deficiency"],
-            "evidence": 0.85,
-            "evidence_count": 1,
-        },
-    ],
-    "reliability_score": 0.82,
-    "uncertainty_factors": [],
-    "environmental_patterns": [],
-    "progression_risks": [],
     "stage_times": {"stage1a": 40.1, "stage1b": 28.3, "stage1c": 15.7, "stage2": 89.2},
     "verification": {"status": "pending", "verification_id": "def-456"},
 }
 
 DIAGNOSE_RESPONSE_NOT_CANNABIS = {
-    "schema_version": "2.0.0",
+    "schema_version": "3.0.0",
     "success": True,
     "is_cannabis": False,
     "cannabis_confidence": 0.12,
-    "conditions": [],
-    "pests": [],
+    "results": [],
     "stage_times": {"stage1a": 38.5},
 }

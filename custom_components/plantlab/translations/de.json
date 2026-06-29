@@ -97,6 +97,9 @@
           "models": {"name": "Modelle"}
         }
       },
+      "plant_count": {
+        "name": "Anzahl Pflanzen"
+      },
       "history_activity": {
         "name": "Diagnoseaktivität",
         "state_attributes": {

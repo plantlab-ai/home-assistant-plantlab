@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.7.0] - 2026-06-29
+
+### Changed
+
+- Migrated to PlantLab API schema 3.0.0. The diagnose response is now per-plant: health, growth stage, conditions, pests, nutrient (Mulder's) analysis, reliability and uncertainty fields moved out of the top level into a `results[]` array, one entry per detected plant (each carrying a normalized `bbox`). Image-level fields (`is_cannabis`, `cannabis_confidence`, `engine_version`) stay at the top level. The existing sensors now surface the **primary (first) plant** via `results[0]`; behavior for the common single-plant photo is unchanged.
+- The integration tolerates a pre-3.0.0 (flat) response during a staged rollout: when a payload has no `results` key, the per-plant sensors fall back to reading the top-level fields, so an updated integration keeps working against an as-yet-unupgraded API.
+
+### Added
+
+- New diagnostic sensor `sensor.plantlab_plant_count` reports the number of plants the last diagnosis detected (`len(results)`; `0` for a not-cannabis image). Lets automations notice when a frame held more than one plant — only the primary plant is broken out across the other sensors. German translation included (`Anzahl Pflanzen`).
+
 ## [0.6.0] - 2026-05-08
 
 ### Added

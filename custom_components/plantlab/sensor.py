@@ -29,10 +29,30 @@ async def async_setup_entry(
             PlantLabGrowthStageSensor(entry),
             PlantLabNutrientAnalysisSensor(entry),
             PlantLabReliabilityScoreSensor(entry),
+            PlantLabPlantCountSensor(entry),
             PlantLabEngineVersionSensor(entry),
             PlantLabHistoryActivitySensor(entry, history_coordinator),
         ]
     )
+
+
+def primary_plant(data: dict | None) -> dict:
+    """The first detected plant in a schema 3.0.0 diagnose response.
+
+    PlantLab returns one diagnosis per detected plant under ``results``; the
+    sensors here surface the first (primary) plant. An empty ``results`` (a
+    not-cannabis image) yields an empty dict. A pre-3.0.0 payload had no
+    ``results`` key and carried the per-plant fields at the top level, so the
+    whole dict is returned as a fallback — this keeps an updated integration
+    working against an as-yet-unupgraded API during a staged rollout."""
+    if not data:
+        return {}
+    results = data.get("results")
+    if isinstance(results, list):
+        if results and isinstance(results[0], dict):
+            return results[0]
+        return {}
+    return data
 
 
 # Reliability label thresholds. Stage 2 emits a continuous score in [0, 1];
@@ -95,7 +115,7 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
             return None
         if not self._diagnosis_data.get("is_cannabis"):
             return "not_cannabis"
-        is_healthy = self._diagnosis_data.get("is_healthy")
+        is_healthy = primary_plant(self._diagnosis_data).get("is_healthy")
         if is_healthy is None:
             return None
         return "healthy" if is_healthy else "unhealthy"
@@ -105,7 +125,7 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
         if self._diagnosis_data is None:
             return None
         return {
-            "confidence": self._diagnosis_data.get("health_confidence"),
+            "confidence": primary_plant(self._diagnosis_data).get("health_confidence"),
             "is_cannabis": self._diagnosis_data.get("is_cannabis"),
             "cannabis_confidence": self._diagnosis_data.get("cannabis_confidence"),
         }
@@ -123,7 +143,7 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
-        conditions = self._diagnosis_data.get("conditions", [])
+        conditions = primary_plant(self._diagnosis_data).get("conditions", [])
         if not conditions:
             return "none"
         return conditions[0].get("display_name", conditions[0].get("class_id", "unknown"))
@@ -132,14 +152,15 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
-        conditions = self._diagnosis_data.get("conditions", [])
+        plant = primary_plant(self._diagnosis_data)
+        conditions = plant.get("conditions", [])
         return {
             "conditions": [
                 {"name": c.get("display_name", c.get("class_id")), "confidence": c.get("confidence")}
                 for c in conditions
             ],
             "count": len(conditions),
-            "reliability_score": self._diagnosis_data.get("reliability_score"),
+            "reliability_score": plant.get("reliability_score"),
         }
 
 
@@ -155,7 +176,7 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
-        pests = self._diagnosis_data.get("pests", [])
+        pests = primary_plant(self._diagnosis_data).get("pests", [])
         if not pests:
             return "none"
         return pests[0].get("display_name", pests[0].get("class_id", "unknown"))
@@ -164,13 +185,14 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
-        pests = self._diagnosis_data.get("pests", [])
+        plant = primary_plant(self._diagnosis_data)
+        pests = plant.get("pests", [])
         return {
             "pests": [
                 {"name": p.get("display_name", p.get("class_id")), "confidence": p.get("confidence")} for p in pests
             ],
             "count": len(pests),
-            "reliability_score": self._diagnosis_data.get("reliability_score"),
+            "reliability_score": plant.get("reliability_score"),
         }
 
 
@@ -186,14 +208,14 @@ class PlantLabGrowthStageSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
-        return self._diagnosis_data.get("growth_stage")
+        return primary_plant(self._diagnosis_data).get("growth_stage")
 
     @property
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
         return {
-            "confidence": self._diagnosis_data.get("growth_stage_confidence"),
+            "confidence": primary_plant(self._diagnosis_data).get("growth_stage_confidence"),
         }
 
 
@@ -210,7 +232,7 @@ class PlantLabReliabilityScoreSensor(PlantLabBaseSensor):
     def native_value(self) -> float | None:
         if self._diagnosis_data is None:
             return None
-        score = self._diagnosis_data.get("reliability_score")
+        score = primary_plant(self._diagnosis_data).get("reliability_score")
         if score is None:
             return None
         return round(score * 100, 1)
@@ -219,10 +241,11 @@ class PlantLabReliabilityScoreSensor(PlantLabBaseSensor):
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
-        score = self._diagnosis_data.get("reliability_score")
+        plant = primary_plant(self._diagnosis_data)
+        score = plant.get("reliability_score")
         return {
             "reliability_label": _reliability_label(score),
-            "uncertainty_factors": self._diagnosis_data.get("uncertainty_factors", []),
+            "uncertainty_factors": plant.get("uncertainty_factors", []),
         }
 
 
@@ -238,7 +261,7 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
-        hypotheses = self._diagnosis_data.get("mulders_hypotheses", [])
+        hypotheses = primary_plant(self._diagnosis_data).get("mulders_hypotheses", [])
         if not hypotheses:
             return "none"
         return hypotheses[0].get("excess", "unknown")
@@ -247,7 +270,7 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
-        hypotheses = self._diagnosis_data.get("mulders_hypotheses", [])
+        hypotheses = primary_plant(self._diagnosis_data).get("mulders_hypotheses", [])
         return {
             "hypotheses": [
                 {
@@ -260,6 +283,31 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
             ],
             "count": len(hypotheses),
         }
+
+
+class PlantLabPlantCountSensor(PlantLabBaseSensor):
+    """Number of distinct plants the last diagnosis detected (schema 3.0.0).
+
+    State is ``len(results)``; the per-plant sensors surface the first plant.
+    A not-cannabis image reports 0. Marked diagnostic — it informs users when
+    the frame held more than one plant (only the primary is broken out)."""
+
+    _attr_translation_key = "plant_count"
+    _attr_icon = "mdi:sprout-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_plant_count"
+
+    @property
+    def native_value(self) -> int | None:
+        if self._diagnosis_data is None:
+            return None
+        results = self._diagnosis_data.get("results")
+        if not isinstance(results, list):
+            return None
+        return len(results)
 
 
 class PlantLabEngineVersionSensor(PlantLabBaseSensor):

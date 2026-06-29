@@ -97,6 +97,9 @@
           "models": {"name": "Models"}
         }
       },
+      "plant_count": {
+        "name": "Plant count"
+      },
       "history_activity": {
         "name": "Diagnosis activity",
         "state_attributes": {

@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -59,6 +60,10 @@ async def test_sensors_initial_state(hass: HomeAssistant, mock_config_entry, moc
     assert engine_version is not None
     assert engine_version.state == "unknown"
 
+    plant_count = hass.states.get("sensor.plantlab_plant_count")
+    assert plant_count is not None
+    assert plant_count.state == "unknown"
+
 
 async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
@@ -69,6 +74,9 @@ async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_
     engine_version = hass.states.get("sensor.plantlab_engine_version")
     assert engine_version.state == "1.0.93"
     assert engine_version.attributes["models"] == "v3"
+
+    plant_count = hass.states.get("sensor.plantlab_plant_count")
+    assert plant_count.state == "1"
 
     health = hass.states.get("sensor.plantlab_health")
     assert health.state == "healthy"
@@ -174,12 +182,46 @@ async def test_sensors_after_not_cannabis(hass: HomeAssistant, mock_config_entry
     reliability = hass.states.get("sensor.plantlab_reliability_score")
     assert reliability.state == "unknown"
 
+    plant_count = hass.states.get("sensor.plantlab_plant_count")
+    assert plant_count.state == "0"
+
+
+async def test_sensors_multi_plant_surfaces_primary(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    """With more than one detected plant, plant_count reflects the total and
+    the per-plant sensors surface the primary (first) plant."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    data = copy.deepcopy(DIAGNOSE_RESPONSE_UNHEALTHY)
+    second_plant = copy.deepcopy(data["results"][0])
+    second_plant["is_healthy"] = True
+    second_plant["bbox"] = {"x0": 0.5, "y0": 0.0, "x1": 1.0, "y1": 1.0, "normalized": True}
+    second_plant["conditions"] = []
+    second_plant["pests"] = []
+    data["results"].append(second_plant)
+
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
+    await hass.async_block_till_done()
+
+    plant_count = hass.states.get("sensor.plantlab_plant_count")
+    assert plant_count.state == "2"
+
+    # Primary (results[0]) is the unhealthy plant — sensors track it.
+    health = hass.states.get("sensor.plantlab_health")
+    assert health.state == "unhealthy"
+
+    conditions = hass.states.get("sensor.plantlab_conditions")
+    assert conditions.state == "Nitrogen Deficiency"
+
+    problem = hass.states.get("binary_sensor.plantlab_problem")
+    assert problem.state == "on"
+
 
 async def test_reliability_score_zero_value(hass: HomeAssistant, mock_config_entry, mock_api_client):
     """Zero reliability should show 0.0, not unknown."""
     await _setup_integration(hass, mock_config_entry, mock_api_client)
 
-    data = {**DIAGNOSE_RESPONSE_HEALTHY, "reliability_score": 0.0}
+    data = copy.deepcopy(DIAGNOSE_RESPONSE_HEALTHY)
+    data["results"][0]["reliability_score"] = 0.0
     async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
     await hass.async_block_till_done()
 
@@ -192,7 +234,8 @@ async def test_reliability_score_missing_remains_unknown(hass: HomeAssistant, mo
     """When the API omits reliability_score (e.g., Stage 2 didn't run), the sensor stays unknown."""
     await _setup_integration(hass, mock_config_entry, mock_api_client)
 
-    data = {k: v for k, v in DIAGNOSE_RESPONSE_HEALTHY.items() if k != "reliability_score"}
+    data = copy.deepcopy(DIAGNOSE_RESPONSE_HEALTHY)
+    data["results"][0].pop("reliability_score", None)
     async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
     await hass.async_block_till_done()
 

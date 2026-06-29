@@ -8,7 +8,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .sensor import SIGNAL_DIAGNOSIS_UPDATE
+from .sensor import SIGNAL_DIAGNOSIS_UPDATE, primary_plant
 
 
 async def async_setup_entry(
@@ -44,7 +44,7 @@ class PlantLabProblemSensor(BinarySensorEntity):
     def is_on(self) -> bool | None:
         if self._diagnosis_data is None:
             return None
-        is_healthy = self._diagnosis_data.get("is_healthy")
+        is_healthy = primary_plant(self._diagnosis_data).get("is_healthy")
         if is_healthy is None:
             return None
         return not is_healthy
@@ -53,8 +53,9 @@ class PlantLabProblemSensor(BinarySensorEntity):
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
             return None
-        conditions = self._diagnosis_data.get("conditions", [])
-        pests = self._diagnosis_data.get("pests", [])
+        plant = primary_plant(self._diagnosis_data)
+        conditions = plant.get("conditions", [])
+        pests = plant.get("pests", [])
         problems = [
             {"name": c.get("display_name", c.get("class_id")), "confidence": c.get("confidence"), "type": "condition"}
             for c in conditions
