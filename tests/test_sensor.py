@@ -295,9 +295,7 @@ async def test_coarse_group_surfaced_in_condition_and_pest_attributes(
     assert pests.attributes["pests"][0]["coarse_group"] == "pest"
 
 
-async def test_coarse_group_absent_is_none_in_attributes(
-    hass: HomeAssistant, mock_config_entry, mock_api_client
-):
+async def test_coarse_group_absent_is_none_in_attributes(hass: HomeAssistant, mock_config_entry, mock_api_client):
     """An older API that omits coarse_group yields a null value, not a KeyError."""
     await _setup_integration(hass, mock_config_entry, mock_api_client)
 
@@ -310,9 +308,7 @@ async def test_coarse_group_absent_is_none_in_attributes(
     assert conditions.attributes["conditions"][0]["coarse_group"] is None
 
 
-async def test_coarse_fallback_sensor_surfaces_group(
-    hass: HomeAssistant, mock_config_entry, mock_api_client
-):
+async def test_coarse_fallback_sensor_surfaces_group(hass: HomeAssistant, mock_config_entry, mock_api_client):
     """When the API emits a per-plant coarse_fallback (top-1 below threshold),
     the dedicated sensor reports that clinical group."""
     await _setup_integration(hass, mock_config_entry, mock_api_client)
@@ -327,9 +323,7 @@ async def test_coarse_fallback_sensor_surfaces_group(
     assert coarse.state == "mobile_nutrient"
 
 
-async def test_coarse_fallback_sensor_none_when_confident(
-    hass: HomeAssistant, mock_config_entry, mock_api_client
-):
+async def test_coarse_fallback_sensor_none_when_confident(hass: HomeAssistant, mock_config_entry, mock_api_client):
     """No coarse_fallback in the payload (API was confident) → sensor reads 'none'."""
     await _setup_integration(hass, mock_config_entry, mock_api_client)
 
