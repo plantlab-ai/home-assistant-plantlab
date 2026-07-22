@@ -91,6 +91,18 @@
           "uncertainty_factors": {"name": "Uncertainty factors"}
         }
       },
+      "coarse_fallback": {
+        "name": "Likely area",
+        "state": {
+          "none": "None",
+          "mobile_nutrient": "Mobile-nutrient issue",
+          "immobile_newgrowth": "New-growth nutrient issue",
+          "water": "Watering / root-zone",
+          "light": "Light or heat stress",
+          "fungal_disease": "Fungal or viral disease",
+          "pest": "Pest"
+        }
+      },
       "engine_version": {
         "name": "Engine version",
         "state_attributes": {

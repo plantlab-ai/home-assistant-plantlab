@@ -80,6 +80,7 @@ After your first diagnosis, these entities become available:
 | `sensor.plantlab_pests` | Top detected pest (e.g., Spider Mites) |
 | `sensor.plantlab_growth_stage` | Growth stage: vegetative / flowering / seedling |
 | `sensor.plantlab_nutrient_analysis` | Mulder's Chart nutrient antagonism hypothesis (e.g., Potassium Excess) |
+| `sensor.plantlab_likely_area` | Clinical group when the specific diagnosis is uncertain (e.g., Mobile-nutrient issue); `none` when confident |
 | `binary_sensor.plantlab_problem` | On when plant is unhealthy |
 
 ## Free Tier

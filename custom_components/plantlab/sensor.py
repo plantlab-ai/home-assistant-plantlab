@@ -29,6 +29,7 @@ async def async_setup_entry(
             PlantLabGrowthStageSensor(entry),
             PlantLabNutrientAnalysisSensor(entry),
             PlantLabReliabilityScoreSensor(entry),
+            PlantLabCoarseFallbackSensor(entry),
             PlantLabPlantCountSensor(entry),
             PlantLabEngineVersionSensor(entry),
             PlantLabHistoryActivitySensor(entry, history_coordinator),
@@ -156,7 +157,11 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
         conditions = plant.get("conditions", [])
         return {
             "conditions": [
-                {"name": c.get("display_name", c.get("class_id")), "confidence": c.get("confidence")}
+                {
+                    "name": c.get("display_name", c.get("class_id")),
+                    "confidence": c.get("confidence"),
+                    "coarse_group": c.get("coarse_group"),
+                }
                 for c in conditions
             ],
             "count": len(conditions),
@@ -189,7 +194,12 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
         pests = plant.get("pests", [])
         return {
             "pests": [
-                {"name": p.get("display_name", p.get("class_id")), "confidence": p.get("confidence")} for p in pests
+                {
+                    "name": p.get("display_name", p.get("class_id")),
+                    "confidence": p.get("confidence"),
+                    "coarse_group": p.get("coarse_group"),
+                }
+                for p in pests
             ],
             "count": len(pests),
             "reliability_score": plant.get("reliability_score"),
@@ -283,6 +293,28 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
             ],
             "count": len(hypotheses),
         }
+
+
+class PlantLabCoarseFallbackSensor(PlantLabBaseSensor):
+    """Clinical coarse group for the primary plant when the specific (fine-class)
+    diagnosis is below the API's confidence threshold (schema 3.1.0
+    ``coarse_fallback``). State is the group key (e.g. ``mobile_nutrient``) or
+    ``none`` when the API was confident enough to assert a specific class. Lets a
+    dashboard or automation react when the diagnosis is only reliable at the
+    group level rather than surfacing a confidently-wrong specific label."""
+
+    _attr_translation_key = "coarse_fallback"
+    _attr_icon = "mdi:help-circle-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_coarse_fallback"
+
+    @property
+    def native_value(self) -> str | None:
+        if self._diagnosis_data is None:
+            return None
+        return primary_plant(self._diagnosis_data).get("coarse_fallback") or "none"
 
 
 class PlantLabPlantCountSensor(PlantLabBaseSensor):

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.8.0] - 2026-07-22
+
+### Added
+
+- New sensor `sensor.plantlab_likely_area` surfaces the PlantLab API schema 3.1.0 `coarse_fallback` field: when the specific (fine-class) diagnosis is below the API's confidence threshold, the response carries the clinical coarse group (mobile-nutrient, new-growth nutrient, watering/root-zone, light/heat, fungal/viral disease, or pest) instead of asserting an uncertain specific label. State is the group key, or `none` when the API was confident. Lets automations react when the diagnosis is only reliable at the group level. German translation included (`Wahrscheinlicher Bereich`).
+- The `conditions` and `pests` sensors now expose a per-item `coarse_group` in their attribute lists (schema 3.1.0), so each detected condition/pest can be hedged to its clinical group.
+
+### Changed
+
+- Test fixtures updated to schema 3.1.0. The additions are non-breaking: an older API that omits `coarse_group`/`coarse_fallback` yields null/`none`, so the integration keeps working against an as-yet-unupgraded server.
+
 ## [0.7.0] - 2026-06-29
 
 ### Changed

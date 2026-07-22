@@ -91,6 +91,18 @@
           "uncertainty_factors": {"name": "Unsicherheitsfaktoren"}
         }
       },
+      "coarse_fallback": {
+        "name": "Wahrscheinlicher Bereich",
+        "state": {
+          "none": "Keine",
+          "mobile_nutrient": "Mobiler Nährstoffmangel",
+          "immobile_newgrowth": "Nährstoffmangel (Neuwuchs)",
+          "water": "Bewässerung / Wurzelzone",
+          "light": "Licht- oder Hitzestress",
+          "fungal_disease": "Pilz- oder Viruserkrankung",
+          "pest": "Schädling"
+        }
+      },
       "engine_version": {
         "name": "Engine-Version",
         "state_attributes": {

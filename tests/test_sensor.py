@@ -64,6 +64,10 @@ async def test_sensors_initial_state(hass: HomeAssistant, mock_config_entry, moc
     assert plant_count is not None
     assert plant_count.state == "unknown"
 
+    coarse_fallback = hass.states.get("sensor.plantlab_likely_area")
+    assert coarse_fallback is not None
+    assert coarse_fallback.state == "unknown"
+
 
 async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
@@ -267,6 +271,108 @@ async def test_engine_version_partial_models_missing(hass: HomeAssistant, mock_c
     engine_version = hass.states.get("sensor.plantlab_engine_version")
     assert engine_version.state == "1.0.93"
     assert engine_version.attributes["models"] in (None, "")
+
+
+# ---------------------------------------------------------------------------
+# Coarse-group tests (schema 3.1.0)
+# ---------------------------------------------------------------------------
+
+
+async def test_coarse_group_surfaced_in_condition_and_pest_attributes(
+    hass: HomeAssistant, mock_config_entry, mock_api_client
+):
+    """Each surfaced condition/pest carries its clinical coarse group so a
+    dashboard can hedge to the group when the specific label is unsure."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_UNHEALTHY)
+    await hass.async_block_till_done()
+
+    conditions = hass.states.get("sensor.plantlab_conditions")
+    assert conditions.attributes["conditions"][0]["coarse_group"] == "mobile_nutrient"
+
+    pests = hass.states.get("sensor.plantlab_pests")
+    assert pests.attributes["pests"][0]["coarse_group"] == "pest"
+
+
+async def test_coarse_group_absent_is_none_in_attributes(
+    hass: HomeAssistant, mock_config_entry, mock_api_client
+):
+    """An older API that omits coarse_group yields a null value, not a KeyError."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    data = copy.deepcopy(DIAGNOSE_RESPONSE_UNHEALTHY)
+    data["results"][0]["conditions"][0].pop("coarse_group", None)
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
+    await hass.async_block_till_done()
+
+    conditions = hass.states.get("sensor.plantlab_conditions")
+    assert conditions.attributes["conditions"][0]["coarse_group"] is None
+
+
+async def test_coarse_fallback_sensor_surfaces_group(
+    hass: HomeAssistant, mock_config_entry, mock_api_client
+):
+    """When the API emits a per-plant coarse_fallback (top-1 below threshold),
+    the dedicated sensor reports that clinical group."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    data = copy.deepcopy(DIAGNOSE_RESPONSE_UNHEALTHY)
+    data["results"][0]["coarse_fallback"] = "mobile_nutrient"
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, data)
+    await hass.async_block_till_done()
+
+    coarse = hass.states.get("sensor.plantlab_likely_area")
+    assert coarse is not None
+    assert coarse.state == "mobile_nutrient"
+
+
+async def test_coarse_fallback_sensor_none_when_confident(
+    hass: HomeAssistant, mock_config_entry, mock_api_client
+):
+    """No coarse_fallback in the payload (API was confident) → sensor reads 'none'."""
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_HEALTHY)
+    await hass.async_block_till_done()
+
+    coarse = hass.states.get("sensor.plantlab_likely_area")
+    assert coarse.state == "none"
+
+
+def test_coarse_fallback_translation_keys():
+    """strings.json, en.json and de.json all contain the coarse_fallback sensor keys."""
+    import json
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    integration_dir = repo_root / "custom_components" / "plantlab"
+
+    required_keys = {
+        "entity.sensor.coarse_fallback.name",
+        "entity.sensor.coarse_fallback.state.none",
+        "entity.sensor.coarse_fallback.state.mobile_nutrient",
+        "entity.sensor.coarse_fallback.state.immobile_newgrowth",
+        "entity.sensor.coarse_fallback.state.water",
+        "entity.sensor.coarse_fallback.state.light",
+        "entity.sensor.coarse_fallback.state.fungal_disease",
+        "entity.sensor.coarse_fallback.state.pest",
+    }
+
+    def leaf_paths(data: dict, prefix: str = "") -> set[str]:
+        paths: set[str] = set()
+        for key, value in data.items():
+            path = f"{prefix}.{key}" if prefix else key
+            if isinstance(value, dict):
+                paths.update(leaf_paths(value, path))
+            else:
+                paths.add(path)
+        return paths
+
+    for fname in ("strings.json", "translations/en.json", "translations/de.json"):
+        catalog = json.loads((integration_dir / fname).read_text())
+        missing = required_keys - leaf_paths(catalog)
+        assert not missing, f"{fname} is missing keys: {missing}"
 
 
 # ---------------------------------------------------------------------------

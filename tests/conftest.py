@@ -108,11 +108,11 @@ def mock_api_client_not_cannabis(mock_api_client):
     return mock_api_client
 
 
-# Whole-image bbox for single-plant fixtures (schema 3.0.0).
+# Whole-image bbox for single-plant fixtures (schema 3.1.0).
 _WHOLE_IMAGE_BBOX = {"x0": 0.0, "y0": 0.0, "x1": 1.0, "y1": 1.0, "normalized": True}
 
 DIAGNOSE_RESPONSE_HEALTHY = {
-    "schema_version": "3.0.0",
+    "schema_version": "3.1.0",
     "engine_version": {"api": "1.0.93", "models": "v3"},
     "success": True,
     "is_cannabis": True,
@@ -138,7 +138,7 @@ DIAGNOSE_RESPONSE_HEALTHY = {
 }
 
 DIAGNOSE_RESPONSE_UNHEALTHY = {
-    "schema_version": "3.0.0",
+    "schema_version": "3.1.0",
     "engine_version": {"api": "1.0.93", "models": "v3"},
     "success": True,
     "is_cannabis": True,
@@ -155,6 +155,7 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
                     "class_id": "nitrogen_deficiency",
                     "display_name": "Nitrogen Deficiency",
                     "confidence": 0.85,
+                    "coarse_group": "mobile_nutrient",
                 },
             ],
             "pests": [
@@ -162,6 +163,7 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
                     "class_id": "spider_mites",
                     "display_name": "Spider Mites",
                     "confidence": 0.72,
+                    "coarse_group": "pest",
                 },
             ],
             "mulders_hypotheses": [
@@ -189,7 +191,7 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
 }
 
 DIAGNOSE_RESPONSE_NOT_CANNABIS = {
-    "schema_version": "3.0.0",
+    "schema_version": "3.1.0",
     "success": True,
     "is_cannabis": False,
     "cannabis_confidence": 0.12,
