@@ -190,11 +190,31 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
     "verification": {"status": "pending", "verification_id": "def-456"},
 }
 
+# The API always returns at least one result entry: buildPlantDiagnoses wraps
+# even a Stage-1A rejection as one whole-frame plant. From v1.0.167 that entry
+# carries the bbox alone, because health and growth stage never ran.
 DIAGNOSE_RESPONSE_NOT_CANNABIS = {
     "schema_version": "3.1.0",
     "success": True,
     "is_cannabis": False,
     "cannabis_confidence": 0.12,
-    "results": [],
+    "results": [{"bbox": _WHOLE_IMAGE_BBOX}],
     "stage_times": {"stage1a": 38.5},
+}
+
+# What the API sent BEFORE v1.0.167: a zero-value is_healthy on an exit where
+# Stage 1B never ran. Kept as a fixture so the integration stays correct against
+# an older API, and so `not is_healthy` can never quietly mean "problem" again.
+DIAGNOSE_RESPONSE_NOT_CANNABIS_LEGACY = {
+    **{
+        k: v
+        for k, v in {
+            "schema_version": "3.1.0",
+            "success": True,
+            "is_cannabis": False,
+            "cannabis_confidence": 0.12,
+            "stage_times": {"stage1a": 38.5},
+        }.items()
+    },
+    "results": [{"bbox": _WHOLE_IMAGE_BBOX, "is_healthy": False}],
 }

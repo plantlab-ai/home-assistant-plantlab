@@ -94,6 +94,13 @@ def _compute_history_data(items: list[dict]) -> HistoryData:
 
         if created_at >= cutoff_24h:
             count_24h += 1
+            # A non-cannabis diagnosis carries no health verdict: the cascade
+            # exits at Stage 1A before health runs. /history still reports
+            # is_healthy as a plain bool, so it reads `false` there -- counting
+            # it would file every photo of a pot, a lamp or a pet under
+            # "unhealthy". /diagnose omits the field entirely from v1.0.167.
+            if not item.get("is_cannabis", True):
+                continue
             if item.get("is_healthy") is True:
                 healthy_24h += 1
             elif item.get("is_healthy") is False:

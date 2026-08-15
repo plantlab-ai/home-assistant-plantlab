@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- The `problem` binary sensor no longer fires for images that are not cannabis. Stage 1A rejects the image before health is ever assessed, but the API sent `is_healthy: false` on that exit (fixed API-side in v1.0.167), so `not is_healthy` reported "problem detected" for a photo of a pot, a lamp or a coffee mug. The sensor now checks `is_cannabis` first and reports unknown, and keeps doing so against an older API.
+- `sensor.plantlab_plant_count` reported `1` for a non-cannabis image. The API wraps even a Stage-1A rejection as one whole-frame result entry, so counting `results[]` counted a plant that was never detected. Now `0` when `is_cannabis` is false.
+- The 24-hour history stats counted every non-cannabis diagnosis as **unhealthy**. `/history` reports `is_healthy` as a plain bool, so those entries read `false`; they are now excluded from the healthy/unhealthy split while still counting toward the total.
+
+### Changed
+
+- The `DIAGNOSE_RESPONSE_NOT_CANNABIS` test fixture used `"results": []`, which the API never sends -- it always returns at least one entry. Corrected to the real wire shape, which is what exposed the plant-count bug. A legacy fixture carrying the pre-v1.0.167 `is_healthy: false` is kept so the guards stay honest against an older API.
+
 ## [0.8.0] - 2026-07-22
 
 ### Added

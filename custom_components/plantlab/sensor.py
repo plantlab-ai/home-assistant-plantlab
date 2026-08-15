@@ -336,6 +336,11 @@ class PlantLabPlantCountSensor(PlantLabBaseSensor):
     def native_value(self) -> int | None:
         if self._diagnosis_data is None:
             return None
+        # No cannabis, no plants. The API wraps even a Stage-1A rejection as one
+        # whole-frame result entry, so counting the array reported "1 plant" for
+        # a photo of a coffee mug.
+        if not self._diagnosis_data.get("is_cannabis"):
+            return 0
         results = self._diagnosis_data.get("results")
         if not isinstance(results, list):
             return None
