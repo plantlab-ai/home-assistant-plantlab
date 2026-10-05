@@ -7,7 +7,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from custom_components.plantlab.api import PlantLabAuthError, PlantLabRateLimitError
 from custom_components.plantlab.const import DOMAIN, SERVICE_DIAGNOSE
 
-from .conftest import DIAGNOSE_RESPONSE_UNHEALTHY
+from .conftest import DIAGNOSE_RESPONSE_TOMATO_V4, DIAGNOSE_RESPONSE_UNHEALTHY
 
 
 async def _setup_integration(hass, mock_config_entry, mock_api_client):
@@ -37,6 +37,24 @@ async def test_diagnose_with_image_path(hass: HomeAssistant, mock_config_entry, 
     assert result["success"] is True
     assert result["is_cannabis"] is True
     mock_api_client.async_diagnose.assert_called_once_with(b"fake_image", filename="test.jpg")
+
+
+async def test_diagnose_returns_schema4_species_unchanged(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    mock_api_client.async_diagnose = AsyncMock(return_value=DIAGNOSE_RESPONSE_TOMATO_V4)
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    with patch("custom_components.plantlab._read_image_file", return_value=b"fake_image"):
+        result = await hass.services.async_call(
+            DOMAIN,
+            SERVICE_DIAGNOSE,
+            {"image_path": "/config/tomato.jpg"},
+            blocking=True,
+            return_response=True,
+        )
+
+    assert result["species"] == "tomato"
+    assert "is_cannabis" not in result
+    assert hass.states.get("sensor.plantlab_health").state == "tomato_detected"
 
 
 async def test_diagnose_with_camera_entity(hass: HomeAssistant, mock_config_entry, mock_api_client):

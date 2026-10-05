@@ -218,3 +218,41 @@ DIAGNOSE_RESPONSE_NOT_CANNABIS_LEGACY = {
     },
     "results": [{"bbox": _WHOLE_IMAGE_BBOX, "is_healthy": False}],
 }
+
+DIAGNOSE_RESPONSE_CANNABIS_V4 = {
+    **{k: v for k, v in DIAGNOSE_RESPONSE_HEALTHY.items() if k not in ("is_cannabis", "cannabis_confidence")},
+    "schema_version": "4.0.0",
+    "species": "cannabis",
+    "species_confidence": 0.98,
+    "in_scope": True,
+    "routed_reason": None,
+}
+
+DIAGNOSE_RESPONSE_UNHEALTHY_V4 = {
+    **{k: v for k, v in DIAGNOSE_RESPONSE_UNHEALTHY.items() if k not in ("is_cannabis", "cannabis_confidence")},
+    "schema_version": "4.0.0",
+    "species": "cannabis",
+    "species_confidence": 0.97,
+    "in_scope": True,
+    "routed_reason": None,
+}
+
+DIAGNOSE_RESPONSE_TOMATO_V4 = {
+    "schema_version": "4.0.0",
+    "success": True,
+    "species": "tomato",
+    "species_confidence": 0.91,
+    "in_scope": True,
+    "routed_reason": None,
+    "results": [],
+}
+
+DIAGNOSE_RESPONSE_NEITHER_V4 = {
+    "schema_version": "4.0.0",
+    "success": True,
+    "species": None,
+    "species_confidence": None,
+    "in_scope": False,
+    "routed_reason": "unknown_species",
+    "results": [],
+}

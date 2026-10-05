@@ -8,6 +8,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
+from .response import detected_species, has_diagnosis
 from .sensor import SIGNAL_DIAGNOSIS_UPDATE, primary_plant
 
 
@@ -47,7 +48,7 @@ class PlantLabProblemSensor(BinarySensorEntity):
         # Not cannabis means health was never assessed, not that a problem was
         # found. Before v1.0.167 the API sent is_healthy=false on that exit, so
         # `not is_healthy` reported a problem for a photo of a coffee mug.
-        if not self._diagnosis_data.get("is_cannabis"):
+        if detected_species(self._diagnosis_data) != "cannabis":
             return None
         is_healthy = primary_plant(self._diagnosis_data).get("is_healthy")
         if is_healthy is None:
@@ -57,6 +58,8 @@ class PlantLabProblemSensor(BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
+            return None
+        if not has_diagnosis(self._diagnosis_data):
             return None
         plant = primary_plant(self._diagnosis_data)
         conditions = plant.get("conditions", [])

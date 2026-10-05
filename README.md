@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/plantlab-ai/home-assistant-plantlab/actions/workflows/tests.yml/badge.svg)](https://github.com/plantlab-ai/home-assistant-plantlab/actions/workflows/tests.yml)
 
-Plant health diagnosis for Home Assistant. Point a camera at your cannabis plant, and PlantLab tells you what's wrong - nutrient deficiencies, pests, diseases, growth stage, and nutrient antagonism analysis via Mulder's Chart.
+PlantLab identifies cannabis and tomato images in Home Assistant. It diagnoses cannabis health, including nutrient deficiencies, pests, diseases, and growth stage. Tomato detection does not include a health diagnosis yet.
 
 ## Installation
 
@@ -75,13 +75,18 @@ After your first diagnosis, these entities become available:
 
 | Entity | Description |
 |--------|-------------|
-| `sensor.plantlab_health` | Overall health: healthy / unhealthy / not_cannabis |
+| `sensor.plantlab_species` | Cannabis, tomato, or unknown species; includes confidence and routing fields |
+| `sensor.plantlab_health` | Cannabis health; tomato detection or out-of-scope status has no health verdict |
 | `sensor.plantlab_conditions` | Top detected condition (e.g., Nitrogen Deficiency) |
 | `sensor.plantlab_pests` | Top detected pest (e.g., Spider Mites) |
 | `sensor.plantlab_growth_stage` | Growth stage: vegetative / flowering / seedling |
 | `sensor.plantlab_nutrient_analysis` | Mulder's Chart nutrient antagonism hypothesis (e.g., Potassium Excess) |
 | `sensor.plantlab_likely_area` | Clinical group when the specific diagnosis is uncertain (e.g., Mobile-nutrient issue); `none` when confident |
 | `binary_sensor.plantlab_problem` | On when plant is unhealthy |
+
+The integration reads API schemas 3.1.0 and 4.0.0. Install version 0.9.0 before the API switches to schema 4.0.0. The `plantlab.diagnose` service returns the API response unchanged. In schema 4.0.0, `species` replaces the old cannabis flag. Existing cannabis entity IDs and health states stay the same. The health sensor now exposes species attributes instead of the old cannabis yes/no attributes.
+
+For tomato, the health sensor reports `tomato_detected`, the problem sensor stays unknown, and plant count stays unknown. For a schema 4.0.0 reject, health reports `out_of_scope` and plant count reports zero. A schema 3.1.0 reject keeps the `not_cannabis` health state.
 
 ## Free Tier
 

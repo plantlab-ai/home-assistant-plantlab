@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import HistoryCoordinator, HistoryData
+from .response import detected_species, has_diagnosis, species_confidence
 
 SIGNAL_DIAGNOSIS_UPDATE = f"{DOMAIN}_diagnosis_update"
 
@@ -24,6 +25,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             PlantLabHealthSensor(entry),
+            PlantLabSpeciesSensor(entry),
             PlantLabConditionsSensor(entry),
             PlantLabPestsSensor(entry),
             PlantLabGrowthStageSensor(entry),
@@ -38,11 +40,11 @@ async def async_setup_entry(
 
 
 def primary_plant(data: dict | None) -> dict:
-    """The first detected plant in a schema 3.0.0 diagnose response.
+    """The first diagnosed cannabis plant in a diagnose response.
 
     PlantLab returns one diagnosis per detected plant under ``results``; the
     sensors here surface the first (primary) plant. An empty ``results`` (a
-    not-cannabis image) yields an empty dict. A pre-3.0.0 payload had no
+    tomato or out-of-scope image) yields an empty dict. A pre-3.0.0 payload had no
     ``results`` key and carried the per-plant fields at the top level, so the
     whole dict is returned as a fallback — this keeps an updated integration
     working against an as-yet-unupgraded API during a staged rollout."""
@@ -114,7 +116,12 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
-        if not self._diagnosis_data.get("is_cannabis"):
+        species = detected_species(self._diagnosis_data)
+        if species == "tomato":
+            return "tomato_detected"
+        if species is None and "species" in self._diagnosis_data:
+            return "out_of_scope"
+        if species is None:
             return "not_cannabis"
         is_healthy = primary_plant(self._diagnosis_data).get("is_healthy")
         if is_healthy is None:
@@ -127,8 +134,35 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
             return None
         return {
             "confidence": primary_plant(self._diagnosis_data).get("health_confidence"),
-            "is_cannabis": self._diagnosis_data.get("is_cannabis"),
-            "cannabis_confidence": self._diagnosis_data.get("cannabis_confidence"),
+            "species": detected_species(self._diagnosis_data),
+            "species_confidence": species_confidence(self._diagnosis_data),
+            "in_scope": self._diagnosis_data.get("in_scope", detected_species(self._diagnosis_data) is not None),
+            "routed_reason": self._diagnosis_data.get("routed_reason"),
+        }
+
+
+class PlantLabSpeciesSensor(PlantLabBaseSensor):
+    _attr_translation_key = "species"
+    _attr_icon = "mdi:leaf"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_species"
+
+    @property
+    def native_value(self) -> str | None:
+        if self._diagnosis_data is None:
+            return None
+        return detected_species(self._diagnosis_data) or "unknown"
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        if self._diagnosis_data is None:
+            return None
+        return {
+            "confidence": species_confidence(self._diagnosis_data),
+            "in_scope": self._diagnosis_data.get("in_scope", detected_species(self._diagnosis_data) is not None),
+            "routed_reason": self._diagnosis_data.get("routed_reason"),
         }
 
 
@@ -144,6 +178,8 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
+        if not has_diagnosis(self._diagnosis_data):
+            return None
         conditions = primary_plant(self._diagnosis_data).get("conditions", [])
         if not conditions:
             return "none"
@@ -152,6 +188,8 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
     @property
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
+            return None
+        if not has_diagnosis(self._diagnosis_data):
             return None
         plant = primary_plant(self._diagnosis_data)
         conditions = plant.get("conditions", [])
@@ -181,6 +219,8 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
+        if not has_diagnosis(self._diagnosis_data):
+            return None
         pests = primary_plant(self._diagnosis_data).get("pests", [])
         if not pests:
             return "none"
@@ -189,6 +229,8 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
     @property
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
+            return None
+        if not has_diagnosis(self._diagnosis_data):
             return None
         plant = primary_plant(self._diagnosis_data)
         pests = plant.get("pests", [])
@@ -271,6 +313,8 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
+        if not has_diagnosis(self._diagnosis_data):
+            return None
         hypotheses = primary_plant(self._diagnosis_data).get("mulders_hypotheses", [])
         if not hypotheses:
             return "none"
@@ -279,6 +323,8 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
     @property
     def extra_state_attributes(self) -> dict | None:
         if self._diagnosis_data is None:
+            return None
+        if not has_diagnosis(self._diagnosis_data):
             return None
         hypotheses = primary_plant(self._diagnosis_data).get("mulders_hypotheses", [])
         return {
@@ -314,14 +360,16 @@ class PlantLabCoarseFallbackSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
+        if not has_diagnosis(self._diagnosis_data):
+            return None
         return primary_plant(self._diagnosis_data).get("coarse_fallback") or "none"
 
 
 class PlantLabPlantCountSensor(PlantLabBaseSensor):
-    """Number of distinct plants the last diagnosis detected (schema 3.0.0).
+    """Number of cannabis plants the last diagnosis found.
 
     State is ``len(results)``; the per-plant sensors surface the first plant.
-    A not-cannabis image reports 0. Marked diagnostic — it informs users when
+    A schema 4.0.0 tomato image has no count. A rejected image reports 0. This sensor shows when
     the frame held more than one plant (only the primary is broken out)."""
 
     _attr_translation_key = "plant_count"
@@ -339,7 +387,10 @@ class PlantLabPlantCountSensor(PlantLabBaseSensor):
         # No cannabis, no plants. The API wraps even a Stage-1A rejection as one
         # whole-frame result entry, so counting the array reported "1 plant" for
         # a photo of a coffee mug.
-        if not self._diagnosis_data.get("is_cannabis"):
+        species = detected_species(self._diagnosis_data)
+        if species == "tomato":
+            return None
+        if species is None:
             return 0
         results = self._diagnosis_data.get("results")
         if not isinstance(results, list):

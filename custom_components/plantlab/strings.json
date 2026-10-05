@@ -25,12 +25,29 @@
         "state": {
           "healthy": "Healthy",
           "unhealthy": "Unhealthy",
-          "not_cannabis": "Not cannabis"
+          "not_cannabis": "Not cannabis",
+          "tomato_detected": "Tomato detected, no diagnosis",
+          "out_of_scope": "Out of scope"
         },
         "state_attributes": {
           "confidence": {"name": "Confidence"},
-          "is_cannabis": {"name": "Is cannabis"},
-          "cannabis_confidence": {"name": "Cannabis confidence"}
+          "species": {"name": "Species"},
+          "species_confidence": {"name": "Species confidence"},
+          "in_scope": {"name": "In scope"},
+          "routed_reason": {"name": "Routing reason"}
+        }
+      },
+      "species": {
+        "name": "Species",
+        "state": {
+          "cannabis": "Cannabis",
+          "tomato": "Tomato",
+          "unknown": "Unknown"
+        },
+        "state_attributes": {
+          "confidence": {"name": "Confidence"},
+          "in_scope": {"name": "In scope"},
+          "routed_reason": {"name": "Routing reason"}
         }
       },
       "conditions": {

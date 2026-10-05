@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.9.0] - Unreleased
+
+### Added
+
+- Add `sensor.plantlab_species` for cannabis, tomato, or unknown species. It also reports the species score and routing fields.
+- Read the PlantLab API schema 4.0.0 response while keeping support for schema 3.1.0.
+
+### Changed
+
+- The health sensor reports `tomato_detected` without a health verdict and `out_of_scope` for a schema 4.0.0 reject. A legacy reject keeps `not_cannabis`.
+- Health attributes use `species`, `species_confidence`, `in_scope`, and `routed_reason` instead of the cannabis yes/no attributes.
+- Tomato and unknown species do not show condition, pest, nutrient, or problem verdicts. Tomato plant count stays unknown because the API does not count tomato plants.
+- History activity counts health results for cannabis only, including older history rows.
 
 ### Fixed
 

@@ -31,3 +31,20 @@ def test_history_without_is_cannabis_still_counts():
     now = datetime.now(tz=UTC).isoformat()
     data = _compute_history_data([{"created_at": now, "is_healthy": False}])
     assert data.unhealthy_count_24h == 1
+
+
+def test_schema4_history_counts_health_only_for_cannabis():
+    from datetime import UTC, datetime
+
+    from custom_components.plantlab.coordinator import _compute_history_data
+
+    now = datetime.now(tz=UTC).isoformat()
+    items = [
+        {"created_at": now, "species": "cannabis", "is_healthy": True},
+        {"created_at": now, "species": "tomato", "is_healthy": False},
+        {"created_at": now, "species": None, "is_healthy": False},
+    ]
+    data = _compute_history_data(items)
+    assert data.count_24h == 3
+    assert data.healthy_count_24h == 1
+    assert data.unhealthy_count_24h == 0

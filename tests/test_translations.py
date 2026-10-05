@@ -22,9 +22,20 @@ REQUIRED_TRANSLATION_PATHS = {
     "entity.sensor.health.state.healthy",
     "entity.sensor.health.state.unhealthy",
     "entity.sensor.health.state.not_cannabis",
+    "entity.sensor.health.state.tomato_detected",
+    "entity.sensor.health.state.out_of_scope",
     "entity.sensor.health.state_attributes.confidence.name",
-    "entity.sensor.health.state_attributes.is_cannabis.name",
-    "entity.sensor.health.state_attributes.cannabis_confidence.name",
+    "entity.sensor.health.state_attributes.species.name",
+    "entity.sensor.health.state_attributes.species_confidence.name",
+    "entity.sensor.health.state_attributes.in_scope.name",
+    "entity.sensor.health.state_attributes.routed_reason.name",
+    "entity.sensor.species.name",
+    "entity.sensor.species.state.cannabis",
+    "entity.sensor.species.state.tomato",
+    "entity.sensor.species.state.unknown",
+    "entity.sensor.species.state_attributes.confidence.name",
+    "entity.sensor.species.state_attributes.in_scope.name",
+    "entity.sensor.species.state_attributes.routed_reason.name",
     "entity.sensor.conditions.name",
     "entity.sensor.conditions.state.none",
     "entity.sensor.conditions.state_attributes.conditions.name",
@@ -110,6 +121,8 @@ def test_translation_catalogs_exist_and_match_english_structure():
     english_paths = _leaf_paths(english_catalog)
 
     assert english_paths >= REQUIRED_TRANSLATION_PATHS
+    assert "entity.sensor.health.state_attributes.is_cannabis.name" not in english_paths
+    assert "entity.sensor.health.state_attributes.cannabis_confidence.name" not in english_paths
     assert _leaf_paths(german_catalog) == english_paths
     assert _leaf_paths(strings_catalog) == english_paths
 

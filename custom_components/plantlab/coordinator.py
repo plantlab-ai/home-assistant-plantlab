@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 from .api import PlantLabApiClient, PlantLabConnectionError, PlantLabTierError
+from .response import detected_species
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,7 +100,9 @@ def _compute_history_data(items: list[dict]) -> HistoryData:
             # is_healthy as a plain bool, so it reads `false` there -- counting
             # it would file every photo of a pot, a lamp or a pet under
             # "unhealthy". /diagnose omits the field entirely from v1.0.167.
-            if not item.get("is_cannabis", True):
+            if "species" in item and detected_species(item) != "cannabis":
+                continue
+            if "species" not in item and not item.get("is_cannabis", True):
                 continue
             if item.get("is_healthy") is True:
                 healthy_24h += 1
