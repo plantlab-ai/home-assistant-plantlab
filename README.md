@@ -60,13 +60,16 @@ automation:
         data:
           image_path: /config/www/plant_snapshot.jpg
         response_variable: diagnosis
-      - if: "{{ diagnosis.is_healthy == false }}"
+      - variables:
+          plant: "{{ diagnosis.results[0] if diagnosis.results else none }}"
+      - if: "{{ plant is not none and plant.is_healthy == false }}"
         then:
           - action: notify.mobile_app
             data:
               title: "Plant Health Alert"
               message: >
-                Issues detected: {{ diagnosis.conditions | map(attribute='display_name') | join(', ') }}
+                {% set suspected = plant.conditions | length > 0 and plant.conditions | selectattr('suspected', 'defined') | selectattr('suspected') | list | length == plant.conditions | length %}
+                {{ 'Suspected, low confidence, monitor the plant: ' if suspected else 'Issues detected: ' }}{{ plant.conditions | map(attribute='display_name') | join(', ') }}
 ```
 
 ### Sensors
@@ -77,12 +80,16 @@ After your first diagnosis, these entities become available:
 |--------|-------------|
 | `sensor.plantlab_species` | Cannabis, tomato, or unknown species; includes confidence and routing fields |
 | `sensor.plantlab_health` | Cannabis health; tomato detection or out-of-scope status has no health verdict |
-| `sensor.plantlab_conditions` | Top detected condition (e.g., Nitrogen Deficiency) |
-| `sensor.plantlab_pests` | Top detected pest (e.g., Spider Mites) |
+| `sensor.plantlab_conditions` | Top detected condition (e.g., Nitrogen Deficiency). A weak candidate reads `Suspected: Nitrogen Deficiency` |
+| `sensor.plantlab_pests` | Top detected pest (e.g., Spider Mites). A weak candidate reads `Suspected: Spider Mites` |
 | `sensor.plantlab_growth_stage` | Growth stage: vegetative / flowering / seedling |
 | `sensor.plantlab_nutrient_analysis` | Mulder's Chart nutrient antagonism hypothesis (e.g., Potassium Excess) |
 | `sensor.plantlab_likely_area` | Clinical group when the specific diagnosis is uncertain (e.g., Mobile-nutrient issue); `none` when confident |
-| `binary_sensor.plantlab_problem` | On when plant is unhealthy |
+| `binary_sensor.plantlab_problem` | On when plant is unhealthy. The `suspected` attribute is true when every listed problem is only suspected |
+
+### Suspected conditions
+
+When the API finds an unhealthy plant but no condition passes its threshold, it returns its best candidates with `suspected: true`. A suspected candidate is a weak, early signal. Treat it as low confidence and monitor the plant. The conditions and pests sensors put `Suspected:` before the name. Each item in their attribute lists, and each problem on the problem sensor, carries a `suspected` flag. The `suspected` attribute on each sensor is true when the top item is suspected. The problem sensor stays on, because the plant is unhealthy.
 
 The integration reads API schemas 3.1.0 and 4.0.0. Install version 0.9.0 before the API switches to schema 4.0.0. The `plantlab.diagnose` service returns the API response unchanged. In schema 4.0.0, `species` replaces the old cannabis flag. Existing cannabis entity IDs and health states stay the same. The health sensor now exposes species attributes instead of the old cannabis yes/no attributes.
 

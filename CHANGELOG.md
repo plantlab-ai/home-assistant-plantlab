@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.9.1] - 2026-10-06
+
+### Added
+
+- Read the per-item `suspected` flag from the API. When the plant is unhealthy and no condition passes its threshold, the API (v1.0.180) returns its best candidates flagged `suspected`. They no longer look like confident detections.
+- The conditions and pests sensors show `Suspected: <name>` when the top item is suspected. Both sensors, and the problem binary sensor, expose a `suspected` attribute. Each listed condition, pest, and problem carries its own `suspected` flag. English and German translations are included.
+
+### Fixed
+
+- The README example automation read `is_healthy` and `conditions` from the top level of the response. Since schema 3.0.0 they sit in `results[0]`. The example now reads `results[0]` and says when the conditions are only suspected.
+
 ## [0.9.0] - 2026-10-05
 
 ### Added

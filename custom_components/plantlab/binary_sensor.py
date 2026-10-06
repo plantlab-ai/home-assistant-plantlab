@@ -8,7 +8,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .response import detected_species, has_diagnosis
+from .response import detected_species, has_diagnosis, is_suspected
 from .sensor import SIGNAL_DIAGNOSIS_UPDATE, primary_plant
 
 
@@ -65,13 +65,27 @@ class PlantLabProblemSensor(BinarySensorEntity):
         conditions = plant.get("conditions", [])
         pests = plant.get("pests", [])
         problems = [
-            {"name": c.get("display_name", c.get("class_id")), "confidence": c.get("confidence"), "type": "condition"}
+            {
+                "name": c.get("display_name", c.get("class_id")),
+                "confidence": c.get("confidence"),
+                "type": "condition",
+                "suspected": is_suspected(c),
+            }
             for c in conditions
         ] + [
-            {"name": p.get("display_name", p.get("class_id")), "confidence": p.get("confidence"), "type": "pest"}
+            {
+                "name": p.get("display_name", p.get("class_id")),
+                "confidence": p.get("confidence"),
+                "type": "pest",
+                "suspected": is_suspected(p),
+            }
             for p in pests
         ]
-        return {"problems": problems, "count": len(problems)}
+        return {
+            "problems": problems,
+            "count": len(problems),
+            "suspected": bool(problems) and all(problem["suspected"] for problem in problems),
+        }
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(

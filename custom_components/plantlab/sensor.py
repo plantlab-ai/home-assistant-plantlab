@@ -8,7 +8,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import HistoryCoordinator, HistoryData
-from .response import detected_species, has_diagnosis, species_confidence
+from .response import detected_species, has_diagnosis, is_suspected, prediction_state, species_confidence
 
 SIGNAL_DIAGNOSIS_UPDATE = f"{DOMAIN}_diagnosis_update"
 
@@ -180,10 +180,7 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
             return None
         if not has_diagnosis(self._diagnosis_data):
             return None
-        conditions = primary_plant(self._diagnosis_data).get("conditions", [])
-        if not conditions:
-            return "none"
-        return conditions[0].get("display_name", conditions[0].get("class_id", "unknown"))
+        return prediction_state(primary_plant(self._diagnosis_data).get("conditions", []))
 
     @property
     def extra_state_attributes(self) -> dict | None:
@@ -199,10 +196,12 @@ class PlantLabConditionsSensor(PlantLabBaseSensor):
                     "name": c.get("display_name", c.get("class_id")),
                     "confidence": c.get("confidence"),
                     "coarse_group": c.get("coarse_group"),
+                    "suspected": is_suspected(c),
                 }
                 for c in conditions
             ],
             "count": len(conditions),
+            "suspected": bool(conditions) and is_suspected(conditions[0]),
             "reliability_score": plant.get("reliability_score"),
         }
 
@@ -221,10 +220,7 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
             return None
         if not has_diagnosis(self._diagnosis_data):
             return None
-        pests = primary_plant(self._diagnosis_data).get("pests", [])
-        if not pests:
-            return "none"
-        return pests[0].get("display_name", pests[0].get("class_id", "unknown"))
+        return prediction_state(primary_plant(self._diagnosis_data).get("pests", []))
 
     @property
     def extra_state_attributes(self) -> dict | None:
@@ -240,10 +236,12 @@ class PlantLabPestsSensor(PlantLabBaseSensor):
                     "name": p.get("display_name", p.get("class_id")),
                     "confidence": p.get("confidence"),
                     "coarse_group": p.get("coarse_group"),
+                    "suspected": is_suspected(p),
                 }
                 for p in pests
             ],
             "count": len(pests),
+            "suspected": bool(pests) and is_suspected(pests[0]),
             "reliability_score": plant.get("reliability_score"),
         }
 

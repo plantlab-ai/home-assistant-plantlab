@@ -256,3 +256,28 @@ DIAGNOSE_RESPONSE_NEITHER_V4 = {
     "routed_reason": "unknown_species",
     "results": [],
 }
+
+DIAGNOSE_RESPONSE_SUSPECTED_V4 = {
+    **DIAGNOSE_RESPONSE_UNHEALTHY_V4,
+    "results": [
+        {
+            **DIAGNOSE_RESPONSE_UNHEALTHY_V4["results"][0],
+            "conditions": [
+                {
+                    "class_id": "nitrogen_deficiency",
+                    "display_name": "Nitrogen Deficiency",
+                    "confidence": 0.31,
+                    "coarse_group": "mobile_nutrient",
+                    "suspected": True,
+                },
+                {
+                    "class_id": "potassium_deficiency",
+                    "display_name": "Potassium Deficiency",
+                    "confidence": 0.22,
+                    "suspected": True,
+                },
+            ],
+            "pests": [],
+        }
+    ],
+}

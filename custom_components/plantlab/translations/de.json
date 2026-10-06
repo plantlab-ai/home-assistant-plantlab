@@ -58,6 +58,7 @@
         "state_attributes": {
           "conditions": {"name": "Probleme"},
           "count": {"name": "Anzahl"},
+          "suspected": {"name": "Vermutet"},
           "reliability_score": {"name": "Verlässlichkeitswert"}
         }
       },
@@ -69,6 +70,7 @@
         "state_attributes": {
           "pests": {"name": "Schädlinge"},
           "count": {"name": "Anzahl"},
+          "suspected": {"name": "Vermutet"},
           "reliability_score": {"name": "Verlässlichkeitswert"}
         }
       },
@@ -145,7 +147,8 @@
         "name": "Problem",
         "state_attributes": {
           "problems": {"name": "Probleme"},
-          "count": {"name": "Anzahl"}
+          "count": {"name": "Anzahl"},
+          "suspected": {"name": "Vermutet"}
         }
       }
     }
