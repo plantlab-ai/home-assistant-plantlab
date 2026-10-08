@@ -182,7 +182,9 @@ async def test_healthy_tomato_shows_health(hass: HomeAssistant, mock_config_entr
     async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_TOMATO_HEALTHY)
     await hass.async_block_till_done()
 
-    assert hass.states.get("sensor.plantlab_species").state == "tomato"
+    species = hass.states.get("sensor.plantlab_species")
+    assert species.state == "tomato"
+    assert species.attributes["species_name"] == "Solanum lycopersicum"
     health = hass.states.get("sensor.plantlab_health")
     assert health.state == "healthy"
     assert health.attributes["species"] == "tomato"

@@ -150,6 +150,7 @@ class PlantLabSpeciesSensor(PlantLabBaseSensor):
             return None
         return {
             "confidence": species_confidence(self._diagnosis_data),
+            "species_name": self._diagnosis_data.get("species_name"),
             "in_scope": self._diagnosis_data.get("in_scope"),
             "routed_reason": self._diagnosis_data.get("routed_reason"),
         }

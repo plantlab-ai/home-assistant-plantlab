@@ -45,6 +45,7 @@
         },
         "state_attributes": {
           "confidence": {"name": "Konfidenz"},
+          "species_name": {"name": "Wissenschaftlicher Name"},
           "in_scope": {"name": "Im Bereich"},
           "routed_reason": {"name": "Grund der Zuordnung"}
         }

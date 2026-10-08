@@ -33,6 +33,7 @@ REQUIRED_TRANSLATION_PATHS = {
     "entity.sensor.species.state.tomato",
     "entity.sensor.species.state.unknown",
     "entity.sensor.species.state_attributes.confidence.name",
+    "entity.sensor.species.state_attributes.species_name.name",
     "entity.sensor.species.state_attributes.in_scope.name",
     "entity.sensor.species.state_attributes.routed_reason.name",
     "entity.sensor.conditions.name",
