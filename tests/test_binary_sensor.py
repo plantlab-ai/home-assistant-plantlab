@@ -9,8 +9,9 @@ from custom_components.plantlab.sensor import SIGNAL_DIAGNOSIS_UPDATE
 
 from .conftest import (
     DIAGNOSE_RESPONSE_HEALTHY,
-    DIAGNOSE_RESPONSE_NOT_CANNABIS,
-    DIAGNOSE_RESPONSE_NOT_CANNABIS_LEGACY,
+    DIAGNOSE_RESPONSE_OUT_OF_SCOPE,
+    DIAGNOSE_RESPONSE_TOMATO_HEALTHY,
+    DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_UNNAMED,
     DIAGNOSE_RESPONSE_UNHEALTHY,
 )
 
@@ -40,19 +41,18 @@ async def test_healthy_cannabis_reports_no_problem(hass: HomeAssistant, mock_con
     assert await _state_after(hass, DIAGNOSE_RESPONSE_HEALTHY) == "off"
 
 
-async def test_not_cannabis_reports_unknown_not_a_problem(hass: HomeAssistant, mock_config_entry, mock_api_client):
-    """Stage 1A rejected the image, so health was never assessed."""
+async def test_out_of_scope_reports_unknown_not_a_problem(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup(hass, mock_config_entry, mock_api_client)
-    assert await _state_after(hass, DIAGNOSE_RESPONSE_NOT_CANNABIS) == "unknown"
+    assert await _state_after(hass, DIAGNOSE_RESPONSE_OUT_OF_SCOPE) == "unknown"
 
 
-async def test_not_cannabis_on_a_pre_1_0_167_api_is_still_not_a_problem(
+async def test_healthy_tomato_reports_no_problem(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    await _setup(hass, mock_config_entry, mock_api_client)
+    assert await _state_after(hass, DIAGNOSE_RESPONSE_TOMATO_HEALTHY) == "off"
+
+
+async def test_unhealthy_tomato_without_named_cause_reports_a_problem(
     hass: HomeAssistant, mock_config_entry, mock_api_client
 ):
-    """The regression this guard exists for.
-
-    Before v1.0.167 the API sent is_healthy=false on a Stage-1A exit, so
-    `not is_healthy` turned a photo of a coffee mug into "problem detected".
-    """
     await _setup(hass, mock_config_entry, mock_api_client)
-    assert await _state_after(hass, DIAGNOSE_RESPONSE_NOT_CANNABIS_LEGACY) == "unknown"
+    assert await _state_after(hass, DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_UNNAMED) == "on"

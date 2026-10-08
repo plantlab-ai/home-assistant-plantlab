@@ -10,13 +10,12 @@ from custom_components.plantlab.api import PlantLabTierError
 from custom_components.plantlab.sensor import SIGNAL_DIAGNOSIS_UPDATE
 
 from .conftest import (
-    DIAGNOSE_RESPONSE_CANNABIS_V4,
     DIAGNOSE_RESPONSE_HEALTHY,
-    DIAGNOSE_RESPONSE_NEITHER_V4,
-    DIAGNOSE_RESPONSE_NOT_CANNABIS,
-    DIAGNOSE_RESPONSE_TOMATO_V4,
+    DIAGNOSE_RESPONSE_OUT_OF_SCOPE,
+    DIAGNOSE_RESPONSE_TOMATO_HEALTHY,
+    DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_NAMED,
+    DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_UNNAMED,
     DIAGNOSE_RESPONSE_UNHEALTHY,
-    DIAGNOSE_RESPONSE_UNHEALTHY_V4,
 )
 
 
@@ -80,7 +79,7 @@ async def test_sensors_after_healthy_diagnosis(hass: HomeAssistant, mock_config_
     await hass.async_block_till_done()
 
     engine_version = hass.states.get("sensor.plantlab_engine_version")
-    assert engine_version.state == "1.0.93"
+    assert engine_version.state == "1.0.184"
     assert engine_version.attributes["models"] == "v3"
 
     plant_count = hass.states.get("sensor.plantlab_plant_count")
@@ -161,103 +160,79 @@ async def test_sensors_after_unhealthy_diagnosis(hass: HomeAssistant, mock_confi
     assert reliability.attributes["reliability_label"] == "confident"
 
 
-async def test_sensors_after_not_cannabis(hass: HomeAssistant, mock_config_entry, mock_api_client):
+async def test_cannabis_result_keeps_species_attributes(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
-
-    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_NOT_CANNABIS)
-    await hass.async_block_till_done()
-
-    health = hass.states.get("sensor.plantlab_health")
-    assert health.state == "not_cannabis"
-    assert health.attributes["species"] is None
-    assert health.attributes["in_scope"] is False
-    assert hass.states.get("sensor.plantlab_species").state == "unknown"
-
-    conditions = hass.states.get("sensor.plantlab_conditions")
-    assert conditions.state == "none"
-    assert conditions.attributes["count"] == 0
-
-    pests = hass.states.get("sensor.plantlab_pests")
-    assert pests.state == "none"
-    assert pests.attributes["count"] == 0
-
-    growth = hass.states.get("sensor.plantlab_growth_stage")
-    assert growth.state == "unknown"
-
-    nutrient = hass.states.get("sensor.plantlab_nutrient_analysis")
-    assert nutrient.state == "none"
-    assert nutrient.attributes["count"] == 0
-
-    problem = hass.states.get("binary_sensor.plantlab_problem")
-    assert problem.state == "unknown"
-
-    reliability = hass.states.get("sensor.plantlab_reliability_score")
-    assert reliability.state == "unknown"
-
-    plant_count = hass.states.get("sensor.plantlab_plant_count")
-    assert plant_count.state == "0"
-
-
-async def test_schema4_cannabis_keeps_existing_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
-    await _setup_integration(hass, mock_config_entry, mock_api_client)
-    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_CANNABIS_V4)
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_HEALTHY)
     await hass.async_block_till_done()
 
     health = hass.states.get("sensor.plantlab_health")
     assert health.state == "healthy"
     assert health.attributes["species"] == "cannabis"
     assert health.attributes["species_confidence"] == 0.98
-    assert "is_cannabis" not in health.attributes
+    assert health.attributes["species_name"] == "Cannabis sativa"
+    assert health.attributes["in_scope"] is True
     assert hass.states.get("sensor.plantlab_species").state == "cannabis"
+    assert hass.states.get("sensor.plantlab_growth_stage").state == "flowering"
     assert hass.states.get("sensor.plantlab_plant_count").state == "1"
     assert hass.states.get("binary_sensor.plantlab_problem").state == "off"
 
 
-async def test_schema4_unhealthy_cannabis_keeps_condition_results(
-    hass: HomeAssistant, mock_config_entry, mock_api_client
-):
+async def test_healthy_tomato_shows_health(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
-    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_UNHEALTHY_V4)
-    await hass.async_block_till_done()
-
-    assert hass.states.get("sensor.plantlab_health").state == "unhealthy"
-    assert hass.states.get("sensor.plantlab_conditions").state == "Nitrogen Deficiency"
-    assert hass.states.get("sensor.plantlab_pests").state == "Spider Mites"
-    assert hass.states.get("sensor.plantlab_growth_stage").state == "vegetative"
-    assert hass.states.get("binary_sensor.plantlab_problem").state == "on"
-
-
-async def test_schema4_tomato_has_no_cannabis_diagnosis(hass: HomeAssistant, mock_config_entry, mock_api_client):
-    await _setup_integration(hass, mock_config_entry, mock_api_client)
-    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_TOMATO_V4)
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_TOMATO_HEALTHY)
     await hass.async_block_till_done()
 
     assert hass.states.get("sensor.plantlab_species").state == "tomato"
     health = hass.states.get("sensor.plantlab_health")
-    assert health.state == "tomato_detected"
+    assert health.state == "healthy"
     assert health.attributes["species"] == "tomato"
-    assert health.attributes["confidence"] is None
-    assert hass.states.get("binary_sensor.plantlab_problem").state == "unknown"
-    assert hass.states.get("sensor.plantlab_plant_count").state == "unknown"
-    assert hass.states.get("sensor.plantlab_conditions").state == "unknown"
-    assert hass.states.get("sensor.plantlab_pests").state == "unknown"
-    assert "count" not in hass.states.get("sensor.plantlab_conditions").attributes
-    assert "count" not in hass.states.get("sensor.plantlab_pests").attributes
-    assert hass.states.get("sensor.plantlab_nutrient_analysis").state == "unknown"
-    assert hass.states.get("sensor.plantlab_likely_area").state == "unknown"
-    assert "count" not in hass.states.get("binary_sensor.plantlab_problem").attributes
+    assert health.attributes["species_name"] == "Solanum lycopersicum"
+    assert health.attributes["confidence"] == 0.9
+    assert hass.states.get("sensor.plantlab_conditions").state == "none"
+    assert hass.states.get("sensor.plantlab_pests").state == "none"
+    assert hass.states.get("sensor.plantlab_plant_count").state == "1"
+    assert hass.states.get("binary_sensor.plantlab_problem").state == "off"
 
 
-async def test_schema4_neither_is_out_of_scope(hass: HomeAssistant, mock_config_entry, mock_api_client):
+async def test_unhealthy_tomato_with_named_cause(hass: HomeAssistant, mock_config_entry, mock_api_client):
     await _setup_integration(hass, mock_config_entry, mock_api_client)
-    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_NEITHER_V4)
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_NAMED)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("sensor.plantlab_health").state == "unhealthy"
+    conditions = hass.states.get("sensor.plantlab_conditions")
+    assert conditions.state == "Early Blight"
+    assert conditions.attributes["count"] == 1
+    assert hass.states.get("sensor.plantlab_pests").state == "none"
+    assert hass.states.get("binary_sensor.plantlab_problem").state == "on"
+
+
+async def test_unhealthy_tomato_with_no_named_cause(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_UNNAMED)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("sensor.plantlab_health").state == "unhealthy"
+    assert hass.states.get("sensor.plantlab_conditions").state == "none"
+    assert hass.states.get("sensor.plantlab_pests").state == "none"
+    assert hass.states.get("binary_sensor.plantlab_problem").state == "on"
+
+
+async def test_out_of_scope_result(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+    async_dispatcher_send(hass, SIGNAL_DIAGNOSIS_UPDATE, DIAGNOSE_RESPONSE_OUT_OF_SCOPE)
     await hass.async_block_till_done()
 
     assert hass.states.get("sensor.plantlab_species").state == "unknown"
     health = hass.states.get("sensor.plantlab_health")
     assert health.state == "out_of_scope"
     assert health.attributes["species"] is None
+    assert health.attributes["in_scope"] is False
     assert health.attributes["routed_reason"] == "unknown_species"
+    assert hass.states.get("sensor.plantlab_conditions").state == "unknown"
+    assert hass.states.get("sensor.plantlab_pests").state == "unknown"
+    assert hass.states.get("sensor.plantlab_growth_stage").state == "unknown"
+    assert hass.states.get("sensor.plantlab_nutrient_analysis").state == "unknown"
     assert hass.states.get("binary_sensor.plantlab_problem").state == "unknown"
     assert hass.states.get("sensor.plantlab_plant_count").state == "0"
 
@@ -346,7 +321,7 @@ async def test_engine_version_partial_models_missing(hass: HomeAssistant, mock_c
 
 
 # ---------------------------------------------------------------------------
-# Coarse-group tests (schema 3.1.0)
+# Coarse-group tests
 # ---------------------------------------------------------------------------
 
 
@@ -461,7 +436,7 @@ def _item(*, created_at: str, is_healthy: bool | None = True) -> dict:
         "request_id": "r",
         "class_id": "healthy" if is_healthy else "nitrogen_deficiency",
         "confidence": 0.9,
-        "is_cannabis": True,
+        "species": "cannabis",
         "is_healthy": is_healthy,
         "conditions": [],
         "pests": [],

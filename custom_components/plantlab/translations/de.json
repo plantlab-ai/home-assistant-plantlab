@@ -25,14 +25,13 @@
         "state": {
           "healthy": "Gesund",
           "unhealthy": "Ungesund",
-          "not_cannabis": "Kein Cannabis",
-          "tomato_detected": "Tomate erkannt, keine Diagnose",
           "out_of_scope": "Außerhalb des Bereichs"
         },
         "state_attributes": {
           "confidence": {"name": "Konfidenz"},
           "species": {"name": "Pflanzenart"},
           "species_confidence": {"name": "Konfidenz der Pflanzenart"},
+          "species_name": {"name": "Wissenschaftlicher Name"},
           "in_scope": {"name": "Im Bereich"},
           "routed_reason": {"name": "Grund der Zuordnung"}
         }

@@ -40,22 +40,15 @@ async def async_setup_entry(
 
 
 def primary_plant(data: dict | None) -> dict:
-    """The first diagnosed cannabis plant in a diagnose response.
+    """The first diagnosed plant in a diagnose response.
 
     PlantLab returns one diagnosis per detected plant under ``results``; the
-    sensors here surface the first (primary) plant. An empty ``results`` (a
-    tomato or out-of-scope image) yields an empty dict. A pre-3.0.0 payload had no
-    ``results`` key and carried the per-plant fields at the top level, so the
-    whole dict is returned as a fallback — this keeps an updated integration
-    working against an as-yet-unupgraded API during a staged rollout."""
+    sensors here surface the first (primary) plant. An empty ``results`` (an
+    out-of-scope image) yields an empty dict."""
     if not data:
         return {}
     results = data.get("results")
-    if isinstance(results, list):
-        if results and isinstance(results[0], dict):
-            return results[0]
-        return {}
-    return data
+    return results[0] if results else {}
 
 
 # Reliability label thresholds. Stage 2 emits a continuous score in [0, 1];
@@ -116,13 +109,8 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
     def native_value(self) -> str | None:
         if self._diagnosis_data is None:
             return None
-        species = detected_species(self._diagnosis_data)
-        if species == "tomato":
-            return "tomato_detected"
-        if species is None and "species" in self._diagnosis_data:
+        if detected_species(self._diagnosis_data) is None:
             return "out_of_scope"
-        if species is None:
-            return "not_cannabis"
         is_healthy = primary_plant(self._diagnosis_data).get("is_healthy")
         if is_healthy is None:
             return None
@@ -136,7 +124,8 @@ class PlantLabHealthSensor(PlantLabBaseSensor):
             "confidence": primary_plant(self._diagnosis_data).get("health_confidence"),
             "species": detected_species(self._diagnosis_data),
             "species_confidence": species_confidence(self._diagnosis_data),
-            "in_scope": self._diagnosis_data.get("in_scope", detected_species(self._diagnosis_data) is not None),
+            "species_name": self._diagnosis_data.get("species_name"),
+            "in_scope": self._diagnosis_data.get("in_scope"),
             "routed_reason": self._diagnosis_data.get("routed_reason"),
         }
 
@@ -161,7 +150,7 @@ class PlantLabSpeciesSensor(PlantLabBaseSensor):
             return None
         return {
             "confidence": species_confidence(self._diagnosis_data),
-            "in_scope": self._diagnosis_data.get("in_scope", detected_species(self._diagnosis_data) is not None),
+            "in_scope": self._diagnosis_data.get("in_scope"),
             "routed_reason": self._diagnosis_data.get("routed_reason"),
         }
 
@@ -341,8 +330,7 @@ class PlantLabNutrientAnalysisSensor(PlantLabBaseSensor):
 
 class PlantLabCoarseFallbackSensor(PlantLabBaseSensor):
     """Clinical coarse group for the primary plant when the specific (fine-class)
-    diagnosis is below the API's confidence threshold (schema 3.1.0
-    ``coarse_fallback``). State is the group key (e.g. ``mobile_nutrient``) or
+    diagnosis is below the API's confidence threshold (``coarse_fallback``). State is the group key (e.g. ``mobile_nutrient``) or
     ``none`` when the API was confident enough to assert a specific class. Lets a
     dashboard or automation react when the diagnosis is only reliable at the
     group level rather than surfacing a confidently-wrong specific label."""
@@ -364,10 +352,10 @@ class PlantLabCoarseFallbackSensor(PlantLabBaseSensor):
 
 
 class PlantLabPlantCountSensor(PlantLabBaseSensor):
-    """Number of cannabis plants the last diagnosis found.
+    """Number of plants the last diagnosis found.
 
     State is ``len(results)``; the per-plant sensors surface the first plant.
-    A schema 4.0.0 tomato image has no count. A rejected image reports 0. This sensor shows when
+    A rejected image reports 0. This sensor shows when
     the frame held more than one plant (only the primary is broken out)."""
 
     _attr_translation_key = "plant_count"
@@ -382,18 +370,7 @@ class PlantLabPlantCountSensor(PlantLabBaseSensor):
     def native_value(self) -> int | None:
         if self._diagnosis_data is None:
             return None
-        # No cannabis, no plants. The API wraps even a Stage-1A rejection as one
-        # whole-frame result entry, so counting the array reported "1 plant" for
-        # a photo of a coffee mug.
-        species = detected_species(self._diagnosis_data)
-        if species == "tomato":
-            return None
-        if species is None:
-            return 0
-        results = self._diagnosis_data.get("results")
-        if not isinstance(results, list):
-            return None
-        return len(results)
+        return len(self._diagnosis_data.get("results", []))
 
 
 class PlantLabEngineVersionSensor(PlantLabBaseSensor):

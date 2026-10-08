@@ -25,14 +25,13 @@
         "state": {
           "healthy": "Healthy",
           "unhealthy": "Unhealthy",
-          "not_cannabis": "Not cannabis",
-          "tomato_detected": "Tomato detected, no diagnosis",
           "out_of_scope": "Out of scope"
         },
         "state_attributes": {
           "confidence": {"name": "Confidence"},
           "species": {"name": "Species"},
           "species_confidence": {"name": "Species confidence"},
+          "species_name": {"name": "Scientific name"},
           "in_scope": {"name": "In scope"},
           "routed_reason": {"name": "Routing reason"}
         }

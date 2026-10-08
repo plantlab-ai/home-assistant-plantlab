@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.10.0] - 2026-10-08
+
+### Changed
+
+- Tomato diagnoses are shown like cannabis diagnoses: health, conditions, pests, and the problem sensor. An unhealthy tomato can have no named cause.
+- The integration reads only the current PlantLab response shape (schema 4.1.0). Health attributes add `species_name`.
+
+### Removed
+
+- Legacy `is_cannabis` and `cannabis_confidence` support, the schema 3.x and 4.0.0 fallbacks, and the `tomato_detected` and `not_cannabis` health states.
+
 ## [0.9.1] - 2026-10-06
 
 ### Added

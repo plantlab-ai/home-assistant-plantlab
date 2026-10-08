@@ -7,7 +7,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from custom_components.plantlab.sensor import SIGNAL_DIAGNOSIS_UPDATE
 
-from .conftest import DIAGNOSE_RESPONSE_SUSPECTED_V4, DIAGNOSE_RESPONSE_UNHEALTHY_V4
+from .conftest import DIAGNOSE_RESPONSE_SUSPECTED, DIAGNOSE_RESPONSE_UNHEALTHY
 
 
 async def _diagnose(hass, mock_config_entry, mock_api_client, payload):
@@ -19,7 +19,7 @@ async def _diagnose(hass, mock_config_entry, mock_api_client, payload):
 
 
 async def test_suspected_condition_state_is_marked(hass: HomeAssistant, mock_config_entry, mock_api_client):
-    await _diagnose(hass, mock_config_entry, mock_api_client, DIAGNOSE_RESPONSE_SUSPECTED_V4)
+    await _diagnose(hass, mock_config_entry, mock_api_client, DIAGNOSE_RESPONSE_SUSPECTED)
 
     conditions = hass.states.get("sensor.plantlab_conditions")
     assert conditions.state == "Suspected: Nitrogen Deficiency"
@@ -31,7 +31,7 @@ async def test_suspected_condition_state_is_marked(hass: HomeAssistant, mock_con
 async def test_suspected_candidates_keep_the_problem_sensor_on_and_flagged(
     hass: HomeAssistant, mock_config_entry, mock_api_client
 ):
-    await _diagnose(hass, mock_config_entry, mock_api_client, DIAGNOSE_RESPONSE_SUSPECTED_V4)
+    await _diagnose(hass, mock_config_entry, mock_api_client, DIAGNOSE_RESPONSE_SUSPECTED)
 
     problem = hass.states.get("binary_sensor.plantlab_problem")
     assert problem.state == "on"
@@ -40,7 +40,7 @@ async def test_suspected_candidates_keep_the_problem_sensor_on_and_flagged(
 
 
 async def test_confident_detection_is_not_suspected(hass: HomeAssistant, mock_config_entry, mock_api_client):
-    await _diagnose(hass, mock_config_entry, mock_api_client, DIAGNOSE_RESPONSE_UNHEALTHY_V4)
+    await _diagnose(hass, mock_config_entry, mock_api_client, DIAGNOSE_RESPONSE_UNHEALTHY)
 
     conditions = hass.states.get("sensor.plantlab_conditions")
     assert conditions.state == "Nitrogen Deficiency"
@@ -55,10 +55,10 @@ async def test_confident_detection_is_not_suspected(hass: HomeAssistant, mock_co
 
 async def test_suspected_pest_state_is_marked(hass: HomeAssistant, mock_config_entry, mock_api_client):
     payload = {
-        **DIAGNOSE_RESPONSE_UNHEALTHY_V4,
+        **DIAGNOSE_RESPONSE_UNHEALTHY,
         "results": [
             {
-                **DIAGNOSE_RESPONSE_UNHEALTHY_V4["results"][0],
+                **DIAGNOSE_RESPONSE_UNHEALTHY["results"][0],
                 "pests": [
                     {"class_id": "spider_mites", "display_name": "Spider Mites", "confidence": 0.2, "suspected": True}
                 ],

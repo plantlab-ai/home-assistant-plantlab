@@ -43,7 +43,7 @@ HISTORY_RESPONSE = {
             "request_id": "req-001",
             "class_id": "healthy",
             "confidence": 0.95,
-            "is_cannabis": True,
+            "species": "cannabis",
             "is_healthy": True,
             "growth_stage": "flowering",
             "growth_stage_confidence": 0.92,
@@ -57,7 +57,7 @@ HISTORY_RESPONSE = {
             "request_id": "req-002",
             "class_id": "nitrogen_deficiency",
             "confidence": 0.85,
-            "is_cannabis": True,
+            "species": "cannabis",
             "is_healthy": False,
             "growth_stage": "vegetative",
             "growth_stage_confidence": 0.89,
@@ -71,7 +71,7 @@ HISTORY_RESPONSE = {
             "request_id": "req-003",
             "class_id": "healthy",
             "confidence": 0.91,
-            "is_cannabis": True,
+            "species": "cannabis",
             "is_healthy": True,
             "growth_stage": "seedling",
             "growth_stage_confidence": 0.88,
@@ -103,20 +103,23 @@ def mock_api_client_unhealthy(mock_api_client):
 
 
 @pytest.fixture
-def mock_api_client_not_cannabis(mock_api_client):
-    mock_api_client.async_diagnose = AsyncMock(return_value=DIAGNOSE_RESPONSE_NOT_CANNABIS)
+def mock_api_client_out_of_scope(mock_api_client):
+    mock_api_client.async_diagnose = AsyncMock(return_value=DIAGNOSE_RESPONSE_OUT_OF_SCOPE)
     return mock_api_client
 
 
-# Whole-image bbox for single-plant fixtures (schema 3.1.0).
+# Whole-image bbox for single-plant fixtures.
 _WHOLE_IMAGE_BBOX = {"x0": 0.0, "y0": 0.0, "x1": 1.0, "y1": 1.0, "normalized": True}
 
 DIAGNOSE_RESPONSE_HEALTHY = {
-    "schema_version": "3.1.0",
-    "engine_version": {"api": "1.0.93", "models": "v3"},
+    "schema_version": "4.1.0",
+    "engine_version": {"api": "1.0.184", "models": "v3"},
     "success": True,
-    "is_cannabis": True,
-    "cannabis_confidence": 0.98,
+    "species": "cannabis",
+    "species_confidence": 0.98,
+    "species_name": "Cannabis sativa",
+    "in_scope": True,
+    "routed_reason": None,
     "results": [
         {
             "bbox": _WHOLE_IMAGE_BBOX,
@@ -138,11 +141,14 @@ DIAGNOSE_RESPONSE_HEALTHY = {
 }
 
 DIAGNOSE_RESPONSE_UNHEALTHY = {
-    "schema_version": "3.1.0",
-    "engine_version": {"api": "1.0.93", "models": "v3"},
+    "schema_version": "4.1.0",
+    "engine_version": {"api": "1.0.184", "models": "v3"},
     "success": True,
-    "is_cannabis": True,
-    "cannabis_confidence": 0.97,
+    "species": "cannabis",
+    "species_confidence": 0.97,
+    "species_name": "Cannabis sativa",
+    "in_scope": True,
+    "routed_reason": None,
     "results": [
         {
             "bbox": _WHOLE_IMAGE_BBOX,
@@ -190,78 +196,51 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
     "verification": {"status": "pending", "verification_id": "def-456"},
 }
 
-# The API always returns at least one result entry: buildPlantDiagnoses wraps
-# even a Stage-1A rejection as one whole-frame plant. From v1.0.167 that entry
-# carries the bbox alone, because health and growth stage never ran.
-DIAGNOSE_RESPONSE_NOT_CANNABIS = {
-    "schema_version": "3.1.0",
-    "success": True,
-    "is_cannabis": False,
-    "cannabis_confidence": 0.12,
-    "results": [{"bbox": _WHOLE_IMAGE_BBOX}],
-    "stage_times": {"stage1a": 38.5},
-}
-
-# What the API sent BEFORE v1.0.167: a zero-value is_healthy on an exit where
-# Stage 1B never ran. Kept as a fixture so the integration stays correct against
-# an older API, and so `not is_healthy` can never quietly mean "problem" again.
-DIAGNOSE_RESPONSE_NOT_CANNABIS_LEGACY = {
-    **{
-        k: v
-        for k, v in {
-            "schema_version": "3.1.0",
-            "success": True,
-            "is_cannabis": False,
-            "cannabis_confidence": 0.12,
-            "stage_times": {"stage1a": 38.5},
-        }.items()
-    },
-    "results": [{"bbox": _WHOLE_IMAGE_BBOX, "is_healthy": False}],
-}
-
-DIAGNOSE_RESPONSE_CANNABIS_V4 = {
-    **{k: v for k, v in DIAGNOSE_RESPONSE_HEALTHY.items() if k not in ("is_cannabis", "cannabis_confidence")},
-    "schema_version": "4.0.0",
-    "species": "cannabis",
-    "species_confidence": 0.98,
-    "in_scope": True,
-    "routed_reason": None,
-}
-
-DIAGNOSE_RESPONSE_UNHEALTHY_V4 = {
-    **{k: v for k, v in DIAGNOSE_RESPONSE_UNHEALTHY.items() if k not in ("is_cannabis", "cannabis_confidence")},
-    "schema_version": "4.0.0",
-    "species": "cannabis",
-    "species_confidence": 0.97,
-    "in_scope": True,
-    "routed_reason": None,
-}
-
-DIAGNOSE_RESPONSE_TOMATO_V4 = {
-    "schema_version": "4.0.0",
+DIAGNOSE_RESPONSE_TOMATO_HEALTHY = {
+    "schema_version": "4.1.0",
+    "engine_version": {"api": "1.0.184", "models": "v3"},
     "success": True,
     "species": "tomato",
     "species_confidence": 0.91,
+    "species_name": "Solanum lycopersicum",
     "in_scope": True,
     "routed_reason": None,
-    "results": [],
+    "results": [{"bbox": _WHOLE_IMAGE_BBOX, "is_healthy": True, "health_confidence": 0.9}],
 }
 
-DIAGNOSE_RESPONSE_NEITHER_V4 = {
-    "schema_version": "4.0.0",
+DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_NAMED = {
+    **DIAGNOSE_RESPONSE_TOMATO_HEALTHY,
+    "results": [
+        {
+            "bbox": _WHOLE_IMAGE_BBOX,
+            "is_healthy": False,
+            "health_confidence": 0.12,
+            "conditions": [{"class_id": "early_blight", "display_name": "Early Blight", "confidence": 0.81}],
+        }
+    ],
+}
+
+DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_UNNAMED = {
+    **DIAGNOSE_RESPONSE_TOMATO_HEALTHY,
+    "results": [{"bbox": _WHOLE_IMAGE_BBOX, "is_healthy": False, "health_confidence": 0.2}],
+}
+
+DIAGNOSE_RESPONSE_OUT_OF_SCOPE = {
+    "schema_version": "4.1.0",
     "success": True,
     "species": None,
     "species_confidence": None,
+    "species_name": None,
     "in_scope": False,
     "routed_reason": "unknown_species",
     "results": [],
 }
 
-DIAGNOSE_RESPONSE_SUSPECTED_V4 = {
-    **DIAGNOSE_RESPONSE_UNHEALTHY_V4,
+DIAGNOSE_RESPONSE_SUSPECTED = {
+    **DIAGNOSE_RESPONSE_UNHEALTHY,
     "results": [
         {
-            **DIAGNOSE_RESPONSE_UNHEALTHY_V4["results"][0],
+            **DIAGNOSE_RESPONSE_UNHEALTHY["results"][0],
             "conditions": [
                 {
                     "class_id": "nitrogen_deficiency",

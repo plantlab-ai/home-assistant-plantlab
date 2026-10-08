@@ -61,7 +61,7 @@ async def test_diagnose_success(mock_session):
     client = PlantLabApiClient(mock_session, MOCK_API_KEY, MOCK_HOST)
     result = await client.async_diagnose(b"fake_image_bytes", "test.jpg")
     assert result["success"] is True
-    assert result["is_cannabis"] is True
+    assert result["species"] == "cannabis"
 
 
 async def test_diagnose_auth_error(mock_session):

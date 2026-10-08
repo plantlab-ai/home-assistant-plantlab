@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/plantlab-ai/home-assistant-plantlab/actions/workflows/tests.yml/badge.svg)](https://github.com/plantlab-ai/home-assistant-plantlab/actions/workflows/tests.yml)
 
-PlantLab identifies cannabis and tomato images in Home Assistant. It diagnoses cannabis health, including nutrient deficiencies, pests, diseases, and growth stage. Tomato detection does not include a health diagnosis yet.
+PlantLab diagnoses cannabis and tomato plants in Home Assistant. Every in-scope plant gets a health verdict, conditions, and pests. Cannabis diagnoses also include growth stage and nutrient analysis.
 
 ## Installation
 
@@ -78,11 +78,11 @@ After your first diagnosis, these entities become available:
 
 | Entity | Description |
 |--------|-------------|
-| `sensor.plantlab_species` | Cannabis, tomato, or unknown species; includes confidence and routing fields |
-| `sensor.plantlab_health` | Cannabis health; tomato detection or out-of-scope status has no health verdict |
+| `sensor.plantlab_species` | Detected species (for example cannabis or tomato) or unknown; includes confidence, scientific name, and routing fields |
+| `sensor.plantlab_health` | Plant health for any in-scope species; `out_of_scope` when the image shows no supported plant |
 | `sensor.plantlab_conditions` | Top detected condition (e.g., Nitrogen Deficiency). A weak candidate reads `Suspected: Nitrogen Deficiency` |
 | `sensor.plantlab_pests` | Top detected pest (e.g., Spider Mites). A weak candidate reads `Suspected: Spider Mites` |
-| `sensor.plantlab_growth_stage` | Growth stage: vegetative / flowering / seedling |
+| `sensor.plantlab_growth_stage` | Growth stage: vegetative / flowering / seedling (cannabis only) |
 | `sensor.plantlab_nutrient_analysis` | Mulder's Chart nutrient antagonism hypothesis (e.g., Potassium Excess) |
 | `sensor.plantlab_likely_area` | Clinical group when the specific diagnosis is uncertain (e.g., Mobile-nutrient issue); `none` when confident |
 | `binary_sensor.plantlab_problem` | On when plant is unhealthy. The `suspected` attribute is true when every listed problem is only suspected |
@@ -91,9 +91,9 @@ After your first diagnosis, these entities become available:
 
 When the API finds an unhealthy plant but no condition passes its threshold, it returns its best candidates with `suspected: true`. A suspected candidate is a weak, early signal. Treat it as low confidence and monitor the plant. The conditions and pests sensors put `Suspected:` before the name. Each item in their attribute lists, and each problem on the problem sensor, carries a `suspected` flag. The `suspected` attribute on each sensor is true when the top item is suspected. The problem sensor stays on, because the plant is unhealthy.
 
-The integration reads API schemas 3.1.0 and 4.0.0. Install version 0.9.0 before the API switches to schema 4.0.0. The `plantlab.diagnose` service returns the API response unchanged. In schema 4.0.0, `species` replaces the old cannabis flag. Existing cannabis entity IDs and health states stay the same. The health sensor now exposes species attributes instead of the old cannabis yes/no attributes.
+The `plantlab.diagnose` service returns the API response unchanged. The health sensor exposes the `species`, `species_confidence`, `species_name`, `in_scope`, and `routed_reason` attributes.
 
-For tomato, the health sensor reports `tomato_detected`, the problem sensor stays unknown, and plant count stays unknown. For a schema 4.0.0 reject, health reports `out_of_scope` and plant count reports zero. A schema 3.1.0 reject keeps the `not_cannabis` health state.
+A tomato diagnosis shows health, conditions, and pests like a cannabis diagnosis. An unhealthy tomato can have no named cause. Then health reads `unhealthy`, the problem sensor is on, and the conditions and pests sensors read `none`. For an out-of-scope image, health reports `out_of_scope` and plant count reports zero.
 
 ## Free Tier
 
