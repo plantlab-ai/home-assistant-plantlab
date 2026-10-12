@@ -111,7 +111,7 @@ async def test_diagnose_auth_error(hass: HomeAssistant, mock_config_entry, mock_
 
 async def test_diagnose_rate_limit(hass: HomeAssistant, mock_config_entry, mock_api_client):
     mock_api_client.async_diagnose = AsyncMock(
-        side_effect=PlantLabRateLimitError("Rate limit exceeded - free tier allows 3 diagnoses/day")
+        side_effect=PlantLabRateLimitError("Daily limit of 3 diagnoses reached. Try again later.")
     )
     await _setup_integration(hass, mock_config_entry, mock_api_client)
 
@@ -120,7 +120,7 @@ async def test_diagnose_rate_limit(hass: HomeAssistant, mock_config_entry, mock_
             "custom_components.plantlab._read_image_file",
             return_value=b"fake_image",
         ),
-        pytest.raises(HomeAssistantError, match="Rate limit"),
+        pytest.raises(HomeAssistantError, match="Daily limit of 3"),
     ):
         await hass.services.async_call(
             DOMAIN,

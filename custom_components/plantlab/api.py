@@ -17,6 +17,39 @@ class PlantLabRateLimitError(Exception):
     pass
 
 
+def _wait_text(seconds: int | None) -> str:
+    if seconds is None:
+        return "Try again later."
+    minutes = max(1, -(-seconds // 60))
+    if minutes == 1:
+        return "Try again in about 1 minute."
+    if minutes < 120:
+        return f"Try again in about {minutes} minutes."
+    return f"Try again in about {-(-minutes // 60)} hours."
+
+
+async def _rate_limit_error(resp: aiohttp.ClientResponse) -> PlantLabRateLimitError:
+    """Build the error for a 429 from the API's `code`, `limit` and `retryAfter`."""
+    try:
+        body = await resp.json(content_type=None)
+    except (aiohttp.ContentTypeError, ValueError):
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    code = body.get("code")
+    limit = body.get("limit")
+    retry_after = body.get("retryAfter")
+    if not isinstance(retry_after, int):
+        header = resp.headers.get("Retry-After", "")
+        retry_after = int(header) if header.isdigit() else None
+    wait = _wait_text(retry_after)
+    if code == "DAILY_LIMIT_EXCEEDED":
+        return PlantLabRateLimitError(f"Daily limit of {limit} diagnoses reached. {wait}")
+    if code == "MONTHLY_LIMIT_EXCEEDED":
+        return PlantLabRateLimitError(f"Monthly limit of {limit} diagnoses reached. {wait}")
+    return PlantLabRateLimitError(f"Too many requests. {wait}")
+
+
 class PlantLabTierError(Exception):
     """Raised when the API returns 403 (free tier or opt-in disabled)."""
 
@@ -74,7 +107,7 @@ class PlantLabApiClient:
                 if resp.status == 401:
                     raise PlantLabAuthError("Invalid API key")
                 if resp.status == 429:
-                    raise PlantLabRateLimitError("Rate limit exceeded - free tier allows 3 diagnoses/day")
+                    raise await _rate_limit_error(resp)
                 resp.raise_for_status()
                 return await resp.json()
         except (aiohttp.ClientError, TimeoutError) as err:

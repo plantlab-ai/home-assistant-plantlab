@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Every request to the PlantLab API sends `User-Agent: PlantLab-HomeAssistant/<version>`, so the server logs show which integration release made a call.
+- Every request to the PlantLab API sends `User-Agent: PlantLab-HA/<version>`, so the server logs show which integration release made a call.
+- A 429 from `plantlab.diagnose` reads the API's `code`, `limit` and `retryAfter`. The error now says whether the daily limit, the monthly limit, or a short rate limit applied, and when to try again. It no longer always claims the free tier allows 3 diagnoses a day.
 
 ## [0.10.0] - 2026-10-08
 

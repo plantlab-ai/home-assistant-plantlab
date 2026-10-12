@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -76,10 +77,46 @@ async def test_diagnose_auth_error(mock_session):
 
 
 async def test_diagnose_rate_limit(mock_session):
-    mock_session.post = AsyncMock(return_value=_make_response(429))
+    response = _make_response(429, {"code": "RATE_LIMIT_EXCEEDED"})
+    response.headers = {"Retry-After": "60"}
+    mock_session.post = AsyncMock(return_value=response)
     client = PlantLabApiClient(mock_session, MOCK_API_KEY, MOCK_HOST)
-    with pytest.raises(PlantLabRateLimitError, match="free tier"):
-        await client.async_diagnose(b"fake_image_bytes")
+    with pytest.raises(PlantLabRateLimitError, match=re.escape("Too many requests. Try again in about 1 minute.")):
+        await client.async_diagnose(b"image-bytes")
+
+
+async def test_diagnose_daily_limit_reports_limit_and_wait(mock_session):
+    body = {"code": "DAILY_LIMIT_EXCEEDED", "limit": 3, "used": 3, "retryAfter": 5400}
+    response = _make_response(429, body)
+    response.headers = {}
+    mock_session.post = AsyncMock(return_value=response)
+    client = PlantLabApiClient(mock_session, MOCK_API_KEY, MOCK_HOST)
+    with pytest.raises(
+        PlantLabRateLimitError, match=re.escape("Daily limit of 3 diagnoses reached. Try again in about 90 minutes")
+    ):
+        await client.async_diagnose(b"image-bytes")
+
+
+async def test_diagnose_monthly_limit_says_monthly_not_daily(mock_session):
+    body = {"code": "MONTHLY_LIMIT_EXCEEDED", "limit": 90, "retryAfter": 7200 * 24}
+    response = _make_response(429, body)
+    response.headers = {}
+    mock_session.post = AsyncMock(return_value=response)
+    client = PlantLabApiClient(mock_session, MOCK_API_KEY, MOCK_HOST)
+    with pytest.raises(
+        PlantLabRateLimitError, match=re.escape("Monthly limit of 90 diagnoses reached. Try again in about 48 hours")
+    ):
+        await client.async_diagnose(b"image-bytes")
+
+
+async def test_diagnose_429_without_json_body_still_raises(mock_session):
+    response = _make_response(429)
+    response.json = AsyncMock(side_effect=ValueError("no json"))
+    response.headers = {}
+    mock_session.post = AsyncMock(return_value=response)
+    client = PlantLabApiClient(mock_session, MOCK_API_KEY, MOCK_HOST)
+    with pytest.raises(PlantLabRateLimitError, match=re.escape("Too many requests. Try again later.")):
+        await client.async_diagnose(b"image-bytes")
 
 
 async def test_diagnose_server_error(mock_session):
@@ -106,7 +143,7 @@ async def test_host_trailing_slash_stripped(mock_session):
 
 def test_user_agent_names_the_integration_and_matches_the_manifest():
     manifest = json.loads((Path(custom_components.plantlab.__file__).parent / "manifest.json").read_text())
-    assert f"PlantLab-HomeAssistant/{manifest['version']}" == USER_AGENT
+    assert f"PlantLab-HA/{manifest['version']}" == USER_AGENT
 
 
 async def test_every_request_sends_the_user_agent(mock_session):
