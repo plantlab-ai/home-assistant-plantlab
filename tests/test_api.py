@@ -1,14 +1,18 @@
+import json
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import aiohttp
 import pytest
 
+import custom_components.plantlab
 from custom_components.plantlab.api import (
     PlantLabApiClient,
     PlantLabAuthError,
     PlantLabConnectionError,
     PlantLabRateLimitError,
 )
+from custom_components.plantlab.const import USER_AGENT
 
 from .conftest import DIAGNOSE_RESPONSE_HEALTHY, MOCK_API_KEY, MOCK_HOST
 
@@ -98,3 +102,23 @@ async def test_host_trailing_slash_stripped(mock_session):
     await client.async_validate()
     url = mock_session.get.call_args[0][0]
     assert not url.startswith("https://api.plantlab.ai//")
+
+
+def test_user_agent_names_the_integration_and_matches_the_manifest():
+    manifest = json.loads((Path(custom_components.plantlab.__file__).parent / "manifest.json").read_text())
+    assert f"PlantLab-HomeAssistant/{manifest['version']}" == USER_AGENT
+
+
+async def test_every_request_sends_the_user_agent(mock_session):
+    mock_session.get = AsyncMock(return_value=_make_response(200, {"records": []}))
+    mock_session.post = AsyncMock(return_value=_make_response(200, DIAGNOSE_RESPONSE_HEALTHY))
+    client = PlantLabApiClient(mock_session, MOCK_API_KEY, MOCK_HOST)
+
+    await client.async_validate()
+    await client.async_diagnose(b"image-bytes")
+    await client.async_get_history("2026-10-01T00:00:00Z")
+
+    sent = [call.kwargs["headers"] for call in (*mock_session.get.call_args_list, *mock_session.post.call_args_list)]
+    assert len(sent) == 3
+    assert all(headers["User-Agent"] == USER_AGENT for headers in sent)
+    assert all(headers["X-API-Key"] == MOCK_API_KEY for headers in sent)

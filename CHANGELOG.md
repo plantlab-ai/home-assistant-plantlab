@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.10.1] - 2026-10-12
+
+### Changed
+
+- Every request to the PlantLab API sends `User-Agent: PlantLab-HomeAssistant/<version>`, so the server logs show which integration release made a call.
+
 ## [0.10.0] - 2026-10-08
 
 ### Changed

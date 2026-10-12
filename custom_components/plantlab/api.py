@@ -2,6 +2,8 @@ import asyncio
 
 import aiohttp
 
+from .const import USER_AGENT
+
 
 class PlantLabAuthError(Exception):
     pass
@@ -34,7 +36,7 @@ class PlantLabApiClient:
 
     @property
     def _headers(self) -> dict[str, str]:
-        return {"X-API-Key": self._api_key}
+        return {"X-API-Key": self._api_key, "User-Agent": USER_AGENT}
 
     async def async_validate(self) -> bool:
         try:
