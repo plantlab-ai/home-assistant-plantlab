@@ -7,7 +7,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from custom_components.plantlab.api import PlantLabAuthError, PlantLabConnectionError
 from custom_components.plantlab.const import CONF_API_KEY, CONF_HOST, DEFAULT_HOST, DOMAIN
 
-from .conftest import MOCK_API_KEY
+from .conftest import MOCK_API_KEY, MOCK_HOST
 
 
 async def test_config_flow_valid_key(hass: HomeAssistant):
@@ -82,3 +82,68 @@ async def test_config_flow_duplicate(hass: HomeAssistant):
         )
         assert result2["type"] is FlowResultType.ABORT
         assert result2["reason"] == "already_configured"
+
+
+async def test_reauth_updates_existing_key_and_preserves_host_and_entry(hass: HomeAssistant, mock_config_entry):
+    replacement_key = "pl_live_replacement123456"
+    with (
+        patch("custom_components.plantlab.config_flow.PlantLabApiClient") as mock_cls,
+        patch.object(hass.config_entries, "async_schedule_reload") as reload_entry,
+    ):
+        mock_cls.return_value.async_validate = AsyncMock(return_value=True)
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_REAUTH, "entry_id": mock_config_entry.entry_id},
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "reauth_confirm"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_API_KEY: replacement_key},
+        )
+        await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+    assert mock_config_entry.data == {CONF_API_KEY: replacement_key, CONF_HOST: MOCK_HOST}
+    assert hass.config_entries.async_entries(DOMAIN) == [mock_config_entry]
+    mock_cls.return_value.async_validate.assert_awaited_once()
+    assert mock_cls.call_args.kwargs["host"] == MOCK_HOST
+    reload_entry.assert_called_once_with(mock_config_entry.entry_id)
+
+
+async def test_reauth_invalid_key_keeps_existing_entry(hass: HomeAssistant, mock_config_entry):
+    with patch("custom_components.plantlab.config_flow.PlantLabApiClient") as mock_cls:
+        mock_cls.return_value.async_validate = AsyncMock(side_effect=PlantLabAuthError("Invalid API key"))
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_REAUTH, "entry_id": mock_config_entry.entry_id},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_API_KEY: "bad_key"},
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"]["base"] == "invalid_auth"
+    assert mock_config_entry.data[CONF_API_KEY] == MOCK_API_KEY
+    assert hass.config_entries.async_entries(DOMAIN) == [mock_config_entry]
+
+
+async def test_reauth_network_error_keeps_existing_entry(hass: HomeAssistant, mock_config_entry):
+    with patch("custom_components.plantlab.config_flow.PlantLabApiClient") as mock_cls:
+        mock_cls.return_value.async_validate = AsyncMock(side_effect=PlantLabConnectionError("Connection refused"))
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_REAUTH, "entry_id": mock_config_entry.entry_id},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_API_KEY: "replacement_key"},
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"]["base"] == "cannot_connect"
+    assert mock_config_entry.data[CONF_API_KEY] == MOCK_API_KEY
+    assert hass.config_entries.async_entries(DOMAIN) == [mock_config_entry]

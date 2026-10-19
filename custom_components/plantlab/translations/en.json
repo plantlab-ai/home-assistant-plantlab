@@ -8,6 +8,13 @@
           "api_key": "API Key",
           "host": "API Host (optional)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Update PlantLab API key",
+        "description": "Enter a valid PlantLab API key. The API host will stay the same.",
+        "data": {
+          "api_key": "API Key"
+        }
       }
     },
     "error": {
@@ -15,7 +22,8 @@
       "cannot_connect": "Unable to connect to PlantLab API"
     },
     "abort": {
-      "already_configured": "PlantLab is already configured"
+      "already_configured": "PlantLab is already configured",
+      "reauth_successful": "PlantLab API key updated"
     }
   },
   "entity": {

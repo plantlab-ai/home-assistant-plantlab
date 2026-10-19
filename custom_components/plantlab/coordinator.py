@@ -4,17 +4,19 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-from .api import PlantLabApiClient, PlantLabConnectionError, PlantLabTierError
+from .api import PlantLabApiClient, PlantLabAuthError, PlantLabConnectionError, PlantLabTierError
 
 _LOGGER = logging.getLogger(__name__)
 
 HISTORY_POLL_INTERVAL = timedelta(minutes=30)
+TIER_DENIED_POLL_INTERVAL = timedelta(hours=24)
 _HISTORY_FETCH_WINDOW = timedelta(days=7)
 _HISTORY_FETCH_LIMIT = 1000
 
@@ -117,6 +119,7 @@ class HistoryCoordinator(DataUpdateCoordinator[HistoryData]):
             hass,
             _LOGGER,
             name="PlantLab history",
+            config_entry=entry,
             update_interval=HISTORY_POLL_INTERVAL,
         )
         self._client = client
@@ -126,7 +129,10 @@ class HistoryCoordinator(DataUpdateCoordinator[HistoryData]):
         since = (datetime.now(tz=UTC) - _HISTORY_FETCH_WINDOW).isoformat()
         try:
             payload = await self._client.async_get_history(since_iso=since, limit=_HISTORY_FETCH_LIMIT)
+        except PlantLabAuthError as err:
+            raise ConfigEntryAuthFailed("PlantLab API key is invalid") from err
         except PlantLabTierError:
+            self.update_interval = TIER_DENIED_POLL_INTERVAL
             if not self._tier_unavailable_logged:
                 _LOGGER.info(
                     "PlantLab history not available (free tier or training opt-in disabled). "
@@ -138,6 +144,8 @@ class HistoryCoordinator(DataUpdateCoordinator[HistoryData]):
             # Leave previous state; coordinator raises UpdateFailed which keeps prior data on retry
             raise UpdateFailed(f"Error fetching PlantLab history: {err}") from err
 
+        self.update_interval = HISTORY_POLL_INTERVAL
+        self._tier_unavailable_logged = False
         items: list[dict] = payload.get("items", [])
         if not items:
             return HistoryData.empty()

@@ -87,6 +87,10 @@ After your first diagnosis, these entities become available:
 | `sensor.plantlab_likely_area` | Clinical group when the specific diagnosis is uncertain (e.g., Mobile-nutrient issue); `none` when confident |
 | `binary_sensor.plantlab_problem` | On when plant is unhealthy. The `suspected` attribute is true when every listed problem is only suspected |
 
+### History access
+
+The history activity sensor uses the API's existing history access rules. If the API returns 403, the sensor reports `tier_unavailable` and the integration waits 24 hours before checking again. After a successful response, checks return to every 30 minutes. If the API returns 401, Home Assistant asks you to enter a replacement API key. The reauthentication flow keeps the existing API host.
+
 ### Suspected conditions
 
 When the API finds an unhealthy plant but no condition passes its threshold, it returns its best candidates with `suspected: true`. A suspected candidate is a weak, early signal. Treat it as low confidence and monitor the plant. The conditions and pests sensors put `Suspected:` before the name. Each item in their attribute lists, and each problem on the problem sensor, carries a `suspected` flag. The `suspected` attribute on each sensor is true when the top item is suspected. The problem sensor stays on, because the plant is unhealthy.

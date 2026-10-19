@@ -8,6 +8,13 @@
           "api_key": "API-Schlüssel",
           "host": "API-Host (optional)"
         }
+      },
+      "reauth_confirm": {
+        "title": "PlantLab-API-Schlüssel aktualisieren",
+        "description": "Gib einen gültigen PlantLab-API-Schlüssel ein. Der API-Host bleibt gleich.",
+        "data": {
+          "api_key": "API-Schlüssel"
+        }
       }
     },
     "error": {
@@ -15,7 +22,8 @@
       "cannot_connect": "Verbindung zur PlantLab-API nicht möglich"
     },
     "abort": {
-      "already_configured": "PlantLab ist bereits eingerichtet"
+      "already_configured": "PlantLab ist bereits eingerichtet",
+      "reauth_successful": "PlantLab-API-Schlüssel aktualisiert"
     }
   },
   "entity": {

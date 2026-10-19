@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.10.2] - 2026-10-19
+
+### Fixed
+
+- An invalid key on the history endpoint now starts Home Assistant reauthentication. The flow validates a replacement key, keeps the configured host, and updates the existing entry.
+- When history access returns 403, the integration retries after 24 hours. A successful history response restores the 30-minute poll interval.
+
 ## [0.10.1] - 2026-10-12
 
 ### Changed
