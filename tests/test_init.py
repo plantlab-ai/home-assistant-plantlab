@@ -49,9 +49,7 @@ async def test_invalid_key_during_first_history_refresh_starts_reauth(hass, mock
     assert DOMAIN not in hass.data
 
 
-async def test_runtime_history_auth_error_starts_one_reauth_and_stops_polling(
-    hass, mock_config_entry, mock_api_client
-):
+async def test_runtime_history_auth_error_starts_one_reauth_and_stops_polling(hass, mock_config_entry, mock_api_client):
     with patch("custom_components.plantlab.PlantLabApiClient", return_value=mock_api_client):
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
