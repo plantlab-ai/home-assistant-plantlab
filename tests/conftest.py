@@ -112,7 +112,7 @@ def mock_api_client_out_of_scope(mock_api_client):
 _WHOLE_IMAGE_BBOX = {"x0": 0.0, "y0": 0.0, "x1": 1.0, "y1": 1.0, "normalized": True}
 
 DIAGNOSE_RESPONSE_HEALTHY = {
-    "schema_version": "4.1.0",
+    "schema_version": "4.2.0",
     "engine_version": {"api": "1.0.184", "models": "v3"},
     "success": True,
     "species": "cannabis",
@@ -137,11 +137,10 @@ DIAGNOSE_RESPONSE_HEALTHY = {
         },
     ],
     "stage_times": {"stage1a": 45.2, "stage1b": 32.1, "stage1c": 18.5, "stage2": 67.3},
-    "verification": {"status": "pending", "verification_id": "abc-123"},
 }
 
 DIAGNOSE_RESPONSE_UNHEALTHY = {
-    "schema_version": "4.1.0",
+    "schema_version": "4.2.0",
     "engine_version": {"api": "1.0.184", "models": "v3"},
     "success": True,
     "species": "cannabis",
@@ -193,11 +192,10 @@ DIAGNOSE_RESPONSE_UNHEALTHY = {
         },
     ],
     "stage_times": {"stage1a": 40.1, "stage1b": 28.3, "stage1c": 15.7, "stage2": 89.2},
-    "verification": {"status": "pending", "verification_id": "def-456"},
 }
 
 DIAGNOSE_RESPONSE_TOMATO_HEALTHY = {
-    "schema_version": "4.1.0",
+    "schema_version": "4.2.0",
     "engine_version": {"api": "1.0.184", "models": "v3"},
     "success": True,
     "species": "tomato",
@@ -226,7 +224,7 @@ DIAGNOSE_RESPONSE_TOMATO_UNHEALTHY_UNNAMED = {
 }
 
 DIAGNOSE_RESPONSE_OUT_OF_SCOPE = {
-    "schema_version": "4.1.0",
+    "schema_version": "4.2.0",
     "success": True,
     "species": None,
     "species_confidence": None,
