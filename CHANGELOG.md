@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-10-28
+
 ### Changed
 
 - Align diagnosis fixtures and the client contract with API schema 4.2.0, which removes third-party verification.
