@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-11-04
+
+### Changed
+
+- Stop polling `/history` after a tier denial, instead of checking again every 24 hours. A reload checks again.
+
 ## [0.10.3] - 2026-10-28
 
 ### Changed

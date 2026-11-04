@@ -89,7 +89,7 @@ After your first diagnosis, these entities become available:
 
 ### History access
 
-The history activity sensor uses the API's existing history access rules. If the API returns 403, the sensor reports `tier_unavailable` and the integration waits 24 hours before checking again. After a successful response, checks return to every 30 minutes. If the API returns 401, Home Assistant asks you to enter a replacement API key. The reauthentication flow keeps the existing API host.
+The history activity sensor uses the API's existing history access rules. If the API returns 403, the sensor reports `tier_unavailable` and the integration stops polling `/history`. To check again, for example after an upgrade to Pro, reload the integration or restart Home Assistant. After a successful response, checks run every 30 minutes. If the API returns 401, Home Assistant asks you to enter a replacement API key. The reauthentication flow keeps the existing API host.
 
 ### Suspected conditions
 

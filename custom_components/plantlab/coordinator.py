@@ -16,7 +16,6 @@ from .api import PlantLabApiClient, PlantLabAuthError, PlantLabConnectionError, 
 _LOGGER = logging.getLogger(__name__)
 
 HISTORY_POLL_INTERVAL = timedelta(minutes=30)
-TIER_DENIED_POLL_INTERVAL = timedelta(hours=24)
 _HISTORY_FETCH_WINDOW = timedelta(days=7)
 _HISTORY_FETCH_LIMIT = 1000
 
@@ -112,7 +111,7 @@ def _compute_history_data(items: list[dict]) -> HistoryData:
 
 
 class HistoryCoordinator(DataUpdateCoordinator[HistoryData]):
-    """Coordinator that polls /history every 30 minutes."""
+    """Coordinator that polls /history every 30 minutes, and stops on a tier denial."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, client: PlantLabApiClient) -> None:
         super().__init__(
@@ -132,11 +131,11 @@ class HistoryCoordinator(DataUpdateCoordinator[HistoryData]):
         except PlantLabAuthError as err:
             raise ConfigEntryAuthFailed("PlantLab API key is invalid") from err
         except PlantLabTierError:
-            self.update_interval = TIER_DENIED_POLL_INTERVAL
+            self.update_interval = None
             if not self._tier_unavailable_logged:
                 _LOGGER.info(
                     "PlantLab history not available (free tier or training opt-in disabled). "
-                    "Sensor will report tier_unavailable=true."
+                    "Sensor will report tier_unavailable=true. Polling stops until the integration reloads."
                 )
                 self._tier_unavailable_logged = True
             return HistoryData.unavailable()

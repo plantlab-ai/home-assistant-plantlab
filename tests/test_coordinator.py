@@ -6,7 +6,6 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from custom_components.plantlab.api import PlantLabAuthError, PlantLabTierError
 from custom_components.plantlab.coordinator import (
     HISTORY_POLL_INTERVAL,
-    TIER_DENIED_POLL_INTERVAL,
     HistoryCoordinator,
 )
 
@@ -39,14 +38,14 @@ async def test_history_auth_error_starts_reauth(hass, mock_config_entry):
         await coordinator._async_update_data()
 
 
-async def test_history_tier_denial_backs_off_and_success_restores_polling(hass, mock_config_entry):
+async def test_history_tier_denial_stops_polling_and_success_restores_it(hass, mock_config_entry):
     client = AsyncMock()
     client.async_get_history.side_effect = PlantLabTierError("Tier unavailable")
     coordinator = HistoryCoordinator(hass, mock_config_entry, client)
 
     unavailable = await coordinator._async_update_data()
     assert unavailable.tier_unavailable is True
-    assert coordinator.update_interval == TIER_DENIED_POLL_INTERVAL
+    assert coordinator.update_interval is None
     assert coordinator._tier_unavailable_logged is True
 
     client.async_get_history.side_effect = None
@@ -55,3 +54,16 @@ async def test_history_tier_denial_backs_off_and_success_restores_polling(hass, 
     assert recovered.tier_unavailable is False
     assert coordinator.update_interval == HISTORY_POLL_INTERVAL
     assert coordinator._tier_unavailable_logged is False
+
+
+async def test_history_tier_denial_leaves_no_scheduled_refresh(hass, mock_config_entry):
+    client = AsyncMock()
+    client.async_get_history.side_effect = PlantLabTierError("denied")
+    coordinator = HistoryCoordinator(hass, mock_config_entry, client)
+    unsubscribe = coordinator.async_add_listener(lambda: None)
+
+    await coordinator.async_refresh()
+
+    assert coordinator._unsub_refresh is None
+    assert client.async_get_history.await_count == 1
+    unsubscribe()
