@@ -12,6 +12,6 @@ diagnose:
     image_path:
       name: Image path
       description: Local file path to an image to diagnose.
-      example: /config/www/plant_snapshot.jpg
+      example: /media/plant_snapshot.jpg
       selector:
         text:

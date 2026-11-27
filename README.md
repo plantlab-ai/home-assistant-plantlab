@@ -38,7 +38,7 @@ response_variable: diagnosis
 # From a file path
 action: plantlab.diagnose
 data:
-  image_path: /config/www/plant_snapshot.jpg
+  image_path: /media/plant_snapshot.jpg
 response_variable: diagnosis
 ```
 
@@ -55,10 +55,10 @@ automation:
         target:
           entity_id: camera.grow_tent
         data:
-          filename: /config/www/plant_snapshot.jpg
+          filename: /media/plant_snapshot.jpg
       - action: plantlab.diagnose
         data:
-          image_path: /config/www/plant_snapshot.jpg
+          image_path: /media/plant_snapshot.jpg
         response_variable: diagnosis
       - variables:
           plant: "{{ diagnosis.results[0] if diagnosis.results else none }}"

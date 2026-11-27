@@ -179,6 +179,9 @@
     }
   },
   "exceptions": {
+    "path_not_allowed": {
+      "message": "PlantLab cannot read {path}. Save the image in a folder that Home Assistant allows, such as /media, or add the folder to allowlist_external_dirs."
+    },
     "no_camera_selected": {
       "message": "Choose a camera in the PlantLab options first, or call the plantlab.diagnose action with an image path."
     },
@@ -186,7 +189,7 @@
       "message": "PlantLab: run your first diagnosis"
     },
     "first_diagnosis_body": {
-      "message": "PlantLab is set up. To get your first diagnosis, [choose a camera and a daily time]({options_url}), then press the Diagnose button. No camera? Save a photo of your plant to /config/www and call the plantlab.diagnose action with that file as image_path."
+      "message": "PlantLab is set up. To get your first diagnosis, [choose a camera and a daily time]({options_url}), then press the Diagnose button. No camera? Save a photo of your plant to /media and call the plantlab.diagnose action with that file as image_path."
     }
   }
 }

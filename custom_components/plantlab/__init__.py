@@ -70,6 +70,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             image_bytes = await _get_image_from_camera(hass, entity_id)
             filename = "snapshot.jpg"
         else:
+            if not hass.config.is_allowed_path(image_path):
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="path_not_allowed",
+                    translation_placeholders={"path": image_path},
+                )
             image_bytes = await hass.async_add_executor_job(_read_image_file, image_path)
             filename = image_path.rsplit("/", 1)[-1] if "/" in image_path else image_path
 

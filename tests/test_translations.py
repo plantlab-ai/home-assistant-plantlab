@@ -86,6 +86,7 @@ REQUIRED_TRANSLATION_PATHS = {
     "options.step.init.data.daily_time",
     "entity.button.diagnose.name",
     "exceptions.no_camera_selected.message",
+    "exceptions.path_not_allowed.message",
     "exceptions.first_diagnosis_title.message",
     "exceptions.first_diagnosis_body.message",
     "entity.sensor.history_activity.name",

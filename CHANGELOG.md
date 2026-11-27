@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Integration options to pick a camera and a time for one automatic diagnosis a day. The daily diagnosis runs only when both are set.
 - A notification after the first setup that links to these options and explains what to do without a camera.
 
+### Fixed
+
+- `plantlab.diagnose` now refuses an `image_path` outside the folders Home Assistant allows (`allowlist_external_dirs` and `media_dirs`). Examples and the first-run notification use `/media`, because Home Assistant serves `/config/www` publicly without a login.
+
 ## [0.10.4] - 2026-11-04
 
 ### Changed

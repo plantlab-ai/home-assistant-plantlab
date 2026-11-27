@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.core_config import async_process_ha_core_config
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from custom_components.plantlab.api import PlantLabAuthError, PlantLabRateLimitError
@@ -11,6 +12,7 @@ from .conftest import DIAGNOSE_RESPONSE_TOMATO_HEALTHY, DIAGNOSE_RESPONSE_UNHEAL
 
 
 async def _setup_integration(hass, mock_config_entry, mock_api_client):
+    await async_process_ha_core_config(hass, {"media_dirs": {"local": "/media"}})
     with patch(
         "custom_components.plantlab.PlantLabApiClient",
         return_value=mock_api_client,
@@ -29,7 +31,7 @@ async def test_diagnose_with_image_path(hass: HomeAssistant, mock_config_entry, 
         result = await hass.services.async_call(
             DOMAIN,
             SERVICE_DIAGNOSE,
-            {"image_path": "/config/test.jpg"},
+            {"image_path": "/media/test.jpg"},
             blocking=True,
             return_response=True,
         )
@@ -47,7 +49,7 @@ async def test_diagnose_returns_species_unchanged(hass: HomeAssistant, mock_conf
         result = await hass.services.async_call(
             DOMAIN,
             SERVICE_DIAGNOSE,
-            {"image_path": "/config/tomato.jpg"},
+            {"image_path": "/media/tomato.jpg"},
             blocking=True,
             return_response=True,
         )
@@ -103,7 +105,7 @@ async def test_diagnose_auth_error(hass: HomeAssistant, mock_config_entry, mock_
         await hass.services.async_call(
             DOMAIN,
             SERVICE_DIAGNOSE,
-            {"image_path": "/config/test.jpg"},
+            {"image_path": "/media/test.jpg"},
             blocking=True,
             return_response=True,
         )
@@ -125,7 +127,7 @@ async def test_diagnose_rate_limit(hass: HomeAssistant, mock_config_entry, mock_
         await hass.services.async_call(
             DOMAIN,
             SERVICE_DIAGNOSE,
-            {"image_path": "/config/test.jpg"},
+            {"image_path": "/media/test.jpg"},
             blocking=True,
             return_response=True,
         )
@@ -142,7 +144,7 @@ async def test_diagnose_updates_sensors(hass: HomeAssistant, mock_config_entry, 
         await hass.services.async_call(
             DOMAIN,
             SERVICE_DIAGNOSE,
-            {"image_path": "/config/test.jpg"},
+            {"image_path": "/media/test.jpg"},
             blocking=True,
             return_response=True,
         )
@@ -153,3 +155,32 @@ async def test_diagnose_updates_sensors(hass: HomeAssistant, mock_config_entry, 
 
     problem = hass.states.get("binary_sensor.plantlab_problem")
     assert problem.state == "on"
+
+
+async def test_default_allowlist_accepts_media_and_www_folders(hass: HomeAssistant):
+    await async_process_ha_core_config(hass, {})
+
+    assert hass.config.is_allowed_path(hass.config.path("media/plant.jpg"))
+    assert hass.config.is_allowed_path(hass.config.path("www/plant.jpg"))
+    assert not hass.config.is_allowed_path("/etc/passwd")
+
+
+async def test_media_folder_is_allowed(hass: HomeAssistant):
+    await async_process_ha_core_config(hass, {"media_dirs": {"local": "/media"}})
+
+    assert hass.config.is_allowed_path("/media/plant.jpg")
+
+
+async def test_diagnose_refuses_path_outside_allowlist(hass: HomeAssistant, mock_config_entry, mock_api_client):
+    await _setup_integration(hass, mock_config_entry, mock_api_client)
+
+    with (
+        patch("custom_components.plantlab._read_image_file") as read_file,
+        pytest.raises(ServiceValidationError, match="cannot read /etc/passwd"),
+    ):
+        await hass.services.async_call(
+            DOMAIN, SERVICE_DIAGNOSE, {"image_path": "/etc/passwd"}, blocking=True, return_response=True
+        )
+
+    read_file.assert_not_called()
+    mock_api_client.async_diagnose.assert_not_called()
