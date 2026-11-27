@@ -1,13 +1,20 @@
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.core import callback
+from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import PlantLabApiClient, PlantLabAuthError, PlantLabConnectionError
-from .const import CONF_API_KEY, CONF_HOST, DEFAULT_HOST, DOMAIN
+from .const import CONF_API_KEY, CONF_CAMERA_ENTITY, CONF_DAILY_TIME, CONF_HOST, DEFAULT_HOST, DOMAIN
 
 
 class PlantLabConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return PlantLabOptionsFlow()
 
     async def async_step_reauth(self, entry_data):
         """Ask the user to replace an invalid API key."""
@@ -76,4 +83,23 @@ class PlantLabConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
+        )
+
+
+class PlantLabOptionsFlow(config_entries.OptionsFlow):
+    async def async_step_init(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        schema = vol.Schema(
+            {
+                vol.Optional(CONF_CAMERA_ENTITY): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="camera")
+                ),
+                vol.Optional(CONF_DAILY_TIME): selector.TimeSelector(),
+            }
+        )
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(schema, self.config_entry.options),
         )

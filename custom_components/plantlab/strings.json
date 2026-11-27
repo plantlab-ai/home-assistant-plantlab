@@ -150,6 +150,11 @@
         }
       }
     },
+    "button": {
+      "diagnose": {
+        "name": "Diagnose"
+      }
+    },
     "binary_sensor": {
       "problem": {
         "name": "Problem",
@@ -159,6 +164,29 @@
           "suspected": {"name": "Suspected"}
         }
       }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "First diagnosis",
+        "description": "Pick a camera to diagnose with the Diagnose button. Set a time as well to diagnose that camera once a day. Leave both empty to diagnose only with the plantlab.diagnose action.",
+        "data": {
+          "camera_entity": "Camera",
+          "daily_time": "Daily diagnosis time"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_camera_selected": {
+      "message": "Choose a camera in the PlantLab options first, or call the plantlab.diagnose action with an image path."
+    },
+    "first_diagnosis_title": {
+      "message": "PlantLab: run your first diagnosis"
+    },
+    "first_diagnosis_body": {
+      "message": "PlantLab is set up. To get your first diagnosis, [choose a camera and a daily time]({options_url}), then press the Diagnose button. No camera? Save a photo of your plant to /config/www and call the plantlab.diagnose action with that file as image_path."
     }
   }
 }

@@ -17,3 +17,9 @@ USER_AGENT = f"PlantLab-HA/{INTEGRATION_VERSION}"
 SERVICE_DIAGNOSE = "diagnose"
 
 ATTR_IMAGE_PATH = "image_path"
+
+CONF_CAMERA_ENTITY = "camera_entity"
+CONF_DAILY_TIME = "daily_time"
+CONF_FIRST_RUN_NOTIFIED = "first_run_notified"
+
+OPTIONS_URL = "/config/integrations/integration/plantlab"

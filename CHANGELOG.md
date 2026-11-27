@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- A Diagnose button entity that diagnoses the camera chosen in the integration options.
+- Integration options to pick a camera and a time for one automatic diagnosis a day. The daily diagnosis runs only when both are set.
+- A notification after the first setup that links to these options and explains what to do without a camera.
+
 ## [0.10.4] - 2026-11-04
 
 ### Changed
